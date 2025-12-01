@@ -38,7 +38,7 @@ function App() {
     // { label: 'Vendors', icon: Store, path: '/vendors' },
     // { label: 'Vendors Statistics', icon: ChartBar, path: '/vendors/statistics' },
     { label: "Users", icon: Users, path: "/users" },
-    { label: "Users Statistics", icon: ChartBar, path: "/users/statistics" },
+    // { label: "Users Statistics", icon: ChartBar, path: "/users/statistics" },
     { label: 'General Settings', icon: Settings, path: '/general-settings' },
     { label: 'Wallet', icon: Wallet, path: '/wallet' },
 
@@ -80,8 +80,8 @@ function App() {
                   <Route path="/vendors/overview" element={<VendorOverview />} /> 
                   <Route path="/vendors/statistics" element={<VendorsStatistics />} />*/}
                   <Route path="/users" element={<UsersPage />} />
-                  <Route path="/users/growth-trend" element={<GrowthTrend />} />
-                  <Route path="/users/statistics" element={<UsersStatistics />} />
+                  {/* <Route path="/users/growth-trend" element={<GrowthTrend />} /> */}
+                  {/* <Route path="/users/statistics" element={<UsersStatistics />} /> */}
                   <Route path='/general-settings' element={<AppVersionSettings />} />
                   <Route path='/wallet' element={<AdminWalletPage />} />
                 </Routes>

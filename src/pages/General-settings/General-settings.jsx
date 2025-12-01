@@ -2,51 +2,55 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { Card, Button, Spin, Form, Input, Modal, Row, Col } from "antd";
+import { Card, Button, Spin, Form, Input, Modal, Row, Col, Switch, Typography } from "antd";
+const { Text } = Typography;
 
 export default function AppVersionSettings() {
   const token = localStorage.getItem("token");
-  const [showPopup, setShowPopup] = useState(false);
-  const [countries, setCountries] = useState([]);
-  const [loadingCountries, setLoadingCountries] = useState(false);
+
+  const [showUpdateModal, setShowUpdateModal] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [updating, setUpdating] = useState(false);
   const [checking, setChecking] = useState(false);
+  const [versionData, setVersionData] = useState(null);
+  const [htmlModalOpen, setHtmlModalOpen] = useState(false);
+  const [modalHtml, setModalHtml] = useState("");
   const [form] = Form.useForm();
-
-  // Fetch Countries
-  const fetchCountries = async () => {
-    try {
-      setLoadingCountries(true);
-      const res = await axios.get(
-        "https://api.maghni.acwad.tech/api/v1/app-version/countries-data",
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      setCountries(res.data);
-    } catch (err) {
-      toast.error("Failed to load countries");
-    } finally {
-      setLoadingCountries(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchCountries();
-  }, []);
 
   // Check version
   const checkVersion = async () => {
     try {
       setChecking(true);
       const res = await axios.get(
-        "https://api.maghni.acwad.tech/api/v1/app-version/check",
+        "http://109.106.244.200:3800/api/v1/app-version/check",
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      if (res.status === 200) toast.success("Version is up to date ✔️");
-      else toast.info("Unexpected response from server");
+      setVersionData(res.data);
+      toast.success("Version info loaded ✔️");
     } catch (err) {
-      toast.error("Failed to check version");
+      console.error(err);
+      toast.error("Failed to fetch version info");
     } finally {
       setChecking(false);
+    }
+  };
+
+  // Toggle app status
+  const toggleAppStatus = async (checked) => {
+    try {
+      setUpdating(true);
+      const res = await axios.patch(
+        "http://109.106.244.200:3800/api/v1/app-version/toggle-app-status",
+        {},
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setVersionData(prev => ({ ...prev, isOpen: res.data.isOpen }));
+      toast.success(`App is now ${res.data.isOpen ? "open" : "closed"}`);
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to toggle app status");
+    } finally {
+      setUpdating(false);
     }
   };
 
@@ -54,112 +58,156 @@ export default function AppVersionSettings() {
   const updateVersion = async (values) => {
     try {
       setUpdating(true);
-      await axios.post(
-        "https://api.maghni.acwad.tech/api/v1/app-version/update",
+      await axios.put(
+        "http://109.106.244.200:3800/api/v1/app-version/update",
         values,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       toast.success("Version updated successfully ✔️");
-      setShowPopup(false);
+      setShowUpdateModal(false);
+      checkVersion();
     } catch (err) {
+      console.error(err);
       toast.error("Failed to update version");
     } finally {
       setUpdating(false);
     }
   };
 
-  return (
-    <div className="p-6 grid gap-6">
-      <ToastContainer />
+  // Fetch HTML page
+  const fetchHtml = async (url) => {
+    try {
+      setLoading(true);
+      const res = await axios.get(url);
+      setModalHtml(res.data);
+      setHtmlModalOpen(true);
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to fetch page");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-      {/* CHECK VERSION CARD */}
-      <Card title="Check App Version">
-        <p className="text-gray-600 mb-4">
-          Verify if the current app version is up to date.
-        </p>
-        <Button type="primary" onClick={checkVersion} loading={checking}>
-          Check Version
-        </Button>
-      </Card>
+  return (<div className="p-6"> <ToastContainer />
 
-      {/* COUNTRIES CARD */}
-      <Card title="Countries Data">
-        {loadingCountries ? (
-          <div className="flex justify-center py-10">
-            <Spin size="large" />
-          </div>
-        ) : countries.length === 0 ? (
-          <p className="text-gray-500">No countries data found.</p>
-        ) : (
-          <Row gutter={[16, 16]}>
-            {countries.map((c) => (
-              <Col xs={24} sm={12} lg={8} key={c.id}>
-                <Card className="flex items-center gap-3" bordered>
-                  <img src={c.flag} alt={c.name} className="w-12 h-12 rounded" />
-                  <div>
-                    <p className="font-semibold">{c.name}</p>
-                    <p className="text-sm text-gray-600">{c.phoneCode}</p>
-                    <p className="text-xs">Currency: {c.currency}</p>
-                  </div>
-                </Card>
-              </Col>
-            ))}
+    {/* CHECK VERSION CARD */}
+    <Card title="App Version Info" className="mb-4">
+      <Button type="primary" onClick={checkVersion} loading={checking}>
+        Load Version Info
+      </Button>
+      {versionData && (
+        <Spin spinning={checking || updating} className="mt-4">
+          <Row gutter={16} className="mt-2">
+            <Col span={12}>
+              <Text strong>Android Version:</Text> {versionData.androidVersion}
+            </Col>
+            <Col span={12}>
+              <Text strong>End Date:</Text> {versionData.androidEndDate}
+            </Col>
           </Row>
-        )}
-      </Card>
+          <Row gutter={16} className="mt-2">
+            <Col span={12}>
+              <Text strong>iOS Version:</Text> {versionData.iosVersion}
+            </Col>
+            <Col span={12}>
+              <Text strong>End Date:</Text> {versionData.iosEndDate}
+            </Col>
+          </Row>
+          <Row gutter={16} className="mt-2" align="middle">
+            <Col span={12}>
+              <Text strong>Status:</Text>
+            </Col>
+            <Col span={12}>
+              <Switch
+                checked={versionData.isOpen}
+                onChange={toggleAppStatus}
+                loading={updating}
+                checkedChildren="Open"
+                unCheckedChildren="Closed"
+              />
+            </Col>
+          </Row>
+        </Spin>
+      )}
+    </Card>
 
-      {/* UPDATE VERSION CARD */}
-      <Card title="Update App Version">
-        <p className="text-gray-600 mb-4">Update both Android & iOS application versions.</p>
-        <Button type="primary" onClick={() => setShowPopup(true)}>
-          Open Update Form
-        </Button>
-      </Card>
+    {/* UPDATE VERSION CARD */}
+    <Card title="Update App Version" className="mb-4">
+      <Button type="primary" onClick={() => setShowUpdateModal(true)}>
+        Open Update Form
+      </Button>
+    </Card>
 
-      {/* MODAL FORM */}
-      <Modal
-        title="Update App Version"
-        open={showPopup}
-        onCancel={() => setShowPopup(false)}
-        footer={null}
+    {/* MODAL FORM */}
+    <Modal
+      title="Update App Version"
+      open={showUpdateModal}
+      onCancel={() => setShowUpdateModal(false)}
+      footer={null}
+      width={700}
+    >
+      <Form
+        form={form}
+        layout="vertical"
+        onFinish={updateVersion}
+        initialValues={{
+          androidVersion: versionData?.androidVersion || "",
+          androidEndDate: versionData?.androidEndDate || "",
+          androidUrl: versionData?.androidUrl || "",
+          iosVersion: versionData?.iosVersion || "",
+          iosEndDate: versionData?.iosEndDate || "",
+          iosUrl: versionData?.iosUrl || "",
+        }}
       >
-        <Form
-          form={form}
-          layout="vertical"
-          onFinish={updateVersion}
-          initialValues={{
-            androidVersion: "",
-            androidEndDate: "",
-            androidUrl: "",
-            iosVersion: "",
-            iosEndDate: "",
-            iosUrl: "",
-          }}
-        >
-          <Row gutter={16}>
-            {[
-              { name: "androidVersion", label: "Android Version" },
-              { name: "androidEndDate", label: "Android End Date" },
-              { name: "androidUrl", label: "Android URL" },
-              { name: "iosVersion", label: "iOS Version" },
-              { name: "iosEndDate", label: "iOS End Date" },
-              { name: "iosUrl", label: "iOS URL" },
-            ].map((field) => (
-              <Col span={24} md={12} key={field.name}>
-                <Form.Item label={field.label} name={field.name}>
-                  <Input />
-                </Form.Item>
-              </Col>
-            ))}
-          </Row>
-          <div className="flex justify-end gap-3 mt-4">
-            <Button onClick={() => setShowPopup(false)}>Cancel</Button>
-            <Button type="primary" htmlType="submit" loading={updating}>
-              Save Changes
-            </Button>
-          </div>
-        </Form>
-      </Modal>
-    </div>
+        <Row gutter={16}>
+          {[
+            { name: "androidVersion", label: "Android Version" },
+            { name: "androidEndDate", label: "Android End Date" },
+            { name: "androidUrl", label: "Android URL" },
+            { name: "iosVersion", label: "iOS Version" },
+            { name: "iosEndDate", label: "iOS End Date" },
+            { name: "iosUrl", label: "iOS URL" },
+          ].map((field) => (
+            <Col span={24} md={12} key={field.name}>
+              <Form.Item label={field.label} name={field.name}>
+                <Input />
+              </Form.Item>
+            </Col>
+          ))}
+        </Row>
+        <div className="flex justify-end gap-3 mt-4">
+          <Button onClick={() => setShowUpdateModal(false)}>Cancel</Button>
+          <Button type="primary" htmlType="submit" loading={updating}>
+            Save Changes
+          </Button>
+        </div>
+      </Form>
+    </Modal>
+
+    {/* HTML PAGES CARD */}
+    <Card title="Policy & Deletion Pages">
+      <div className="flex gap-3">
+        <Button onClick={() => fetchHtml("http://109.106.244.200:3800/api/v1/app-version/privacy-policy-link")}>
+          Privacy Policy
+        </Button>
+        <Button onClick={() => fetchHtml("http://109.106.244.200:3800/api/v1/app-version/deletion-link")}>
+          Deletion Policy
+        </Button>
+      </div>
+    </Card>
+
+    {/* HTML MODAL */}
+    <Modal
+      title="HTML Page"
+      open={htmlModalOpen}
+      onCancel={() => setHtmlModalOpen(false)}
+      footer={null}
+      width={900}
+    >
+      {loading ? <Spin tip="Loading..." /> : <div dangerouslySetInnerHTML={{ __html: modalHtml }} />}
+    </Modal>
+  </div>
+
   );
 }
