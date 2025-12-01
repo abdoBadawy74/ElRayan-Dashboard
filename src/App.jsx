@@ -23,6 +23,7 @@ import AppVersionSettings from './pages/General-settings/General-settings';
 import AdminWalletPage from './pages/Wallet/Wallet';
 import { ConfigProvider } from "antd";
 
+
 function App() {
   const location = useLocation();
 

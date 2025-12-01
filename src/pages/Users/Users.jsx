@@ -121,37 +121,39 @@ export default function UsersPage() {
             toast.error("❌ Failed to toggle block status");
         }
     };
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    const [deleteUserId, setDeleteUserId] = useState(null);
 
-    const deleteUser = (id) => {
-        Modal.confirm({
-            title: "Confirm Deletion",
-            content: "Are you sure you want to delete this user?",
-            okText: "Delete",
-            okType: "danger",
-            cancelText: "Cancel",
-            onOk: async () => {
-                try {
-                    const res = await axios.delete(`https://api.maghni.acwad.tech/api/v1/user/${id}`, {
-                        headers: baseHeaders,
-                    });
-
-                    if (res.status === 200 && (res.data?.success ?? true)) {
-                        // remove locally for instant UX
-                        setUsers((prev) => prev.filter((u) => u.id !== id));
-                        toast.success("🗑️ User deleted successfully");
-                        // sync from server
-                        fetchUsers();
-                    } else {
-                        console.error("deleteUser response:", res.data);
-                        toast.error(res.data?.message || "Failed to delete user");
-                    }
-                } catch (err) {
-                    console.error("deleteUser error:", err);
-                    toast.error("❌ Failed to delete user");
-                }
-            },
-        });
+    const showDeleteModal = (id) => {
+        setDeleteUserId(id);
+        setIsDeleteModalOpen(true);
     };
+
+    const handleDeleteOk = async () => {
+        try {
+            const res = await axios.delete(
+                `http://109.106.244.200:3800/api/v1/user/${deleteUserId}`,
+                { headers: baseHeaders }
+            );
+            if (res.status === 200) {
+                setUsers(prev => prev.filter(u => u.id !== deleteUserId));
+                toast.success("🗑️ User deleted successfully");
+                fetchUsers();
+            }
+        } catch (err) {
+            console.error(err);
+            toast.error("❌ Failed to delete user");
+        } finally {
+            setIsDeleteModalOpen(false);
+            setDeleteUserId(null);
+        }
+    };
+
+    const handleDeleteCancel = () => {
+        setIsDeleteModalOpen(false);
+        setDeleteUserId(null);
+    };
+
 
     const columns = [
         {
@@ -214,7 +216,7 @@ export default function UsersPage() {
                         {user.status === "blocked" ? "Unblock" : "Block"}
                     </Button> */}
 
-                    <Button danger icon={<DeleteOutlined />} onClick={() => deleteUser(user.id)}>
+                    <Button danger icon={<DeleteOutlined />} onClick={() => showDeleteModal(user.id)}>
                         Delete
                     </Button>
                 </Space>
@@ -263,11 +265,11 @@ export default function UsersPage() {
                         addonBefore="Limit"
                     />
 
-                    <Link to="/users/growth-trend">
+                    {/* <Link to="/users/growth-trend">
                         <Button type="primary" style={{ background: "green" }}>
                             View Growth Trend
                         </Button>
-                    </Link>
+                    </Link> */}
                 </Space>
             </Card>
 
@@ -295,6 +297,16 @@ export default function UsersPage() {
                     showSizeChanger={false}
                 />
             </div>
+
+            <Modal
+                open={isDeleteModalOpen}
+                title="Confirm Deletion"
+                onOk={handleDeleteOk}
+                onCancel={handleDeleteCancel}
+                okText="Delete"
+                okType="danger"
+                cancelText="Cancel"
+            />
 
             <Modal
                 open={modalOpen}
