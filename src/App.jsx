@@ -21,7 +21,7 @@ import UsersStatistics from './pages/Users/UsersStatistics';
 import Zones from './pages/Zones/Zones';
 import AppVersionSettings from './pages/General-settings/General-settings';
 import AdminWalletPage from './pages/Wallet/Wallet';
-
+import { ConfigProvider } from "antd";
 
 function App() {
   const location = useLocation();
@@ -49,38 +49,47 @@ function App() {
   ];
 
   return (
-    <Routes>
-      {/* لو المستخدم داخل بالفعل، مايرجعش للوجن */}
-      <Route path="/login" element={<RequireBack><Login /></RequireBack>} />
+    // Theme customization for Ant Design components
+    <ConfigProvider
+      theme={{
+        token: {
+          colorPrimary: "#e3010f",
+        },
+      }}
+    >
+      <Routes>
+        {/* لو المستخدم داخل بالفعل، مايرجعش للوجن */}
+        <Route path="/login" element={<RequireBack><Login /></RequireBack>} />
 
-      {/* باقي الصفحات محتاجة توكن */}
-      <Route
-        path="/*"
-        element={
-          <RequireAuth>
-            <DashboardLayout sidebarItems={sidebarItems} activePath={location.pathname} brandName="Maghani Store">
-              <Routes>
-                <Route path="/" element={<Dashboard />} />
-                <Route path="/banners" element={<Banners />} />
-                <Route path="/zones" element={<Zones />} />
-                <Route path="/coupons" element={<Coupons />} />
-                <Route path="/orders" element={<Orders />} />
-                <Route path="/categories" element={<Categories />} />
-                <Route path="/settings" element={<SettingsPage />} />
-                <Route path="/vendors" element={<Vendors />} />
-                <Route path="/vendors/overview" element={<VendorOverview />} />
-                <Route path="/vendors/statistics" element={<VendorsStatistics />} />
-                <Route path="/users" element={<UsersPage />} />
-                <Route path="/users/growth-trend" element={<GrowthTrend />} />
-                <Route path="/users/statistics" element={<UsersStatistics />} />
-                <Route path='/general-settings' element={<AppVersionSettings />} />
-                <Route path='/wallet' element={<AdminWalletPage />} />
-              </Routes>
-            </DashboardLayout>
-          </RequireAuth>
-        }
-      />
-    </Routes>
+        {/* باقي الصفحات محتاجة توكن */}
+        <Route
+          path="/*"
+          element={
+            <RequireAuth>
+              <DashboardLayout sidebarItems={sidebarItems} activePath={location.pathname} brandName="El Rayan Store">
+                <Routes>
+                  <Route path="/" element={<Dashboard />} />
+                  <Route path="/banners" element={<Banners />} />
+                  <Route path="/zones" element={<Zones />} />
+                  <Route path="/coupons" element={<Coupons />} />
+                  <Route path="/orders" element={<Orders />} />
+                  <Route path="/categories" element={<Categories />} />
+                  <Route path="/settings" element={<SettingsPage />} />
+                  <Route path="/vendors" element={<Vendors />} />
+                  <Route path="/vendors/overview" element={<VendorOverview />} />
+                  <Route path="/vendors/statistics" element={<VendorsStatistics />} />
+                  <Route path="/users" element={<UsersPage />} />
+                  <Route path="/users/growth-trend" element={<GrowthTrend />} />
+                  <Route path="/users/statistics" element={<UsersStatistics />} />
+                  <Route path='/general-settings' element={<AppVersionSettings />} />
+                  <Route path='/wallet' element={<AdminWalletPage />} />
+                </Routes>
+              </DashboardLayout>
+            </RequireAuth>
+          }
+        />
+      </Routes>
+    </ConfigProvider>
   );
 }
 

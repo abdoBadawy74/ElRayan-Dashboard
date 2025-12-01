@@ -1,45 +1,49 @@
 import { useEffect, useState } from "react";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { Plus, X, Pencil, Trash } from "lucide-react"; // أيقونات
-import { Spin } from "antd";
+import { Plus, X, Pencil, Trash } from "lucide-react";
+import { Spin, Button, Modal, Input, Select, Upload } from "antd";
+import { UploadOutlined } from "@ant-design/icons";
 
-const API_URL = "https://api.maghni.acwad.tech/api/v1/banners";
+const API_URL = "http://109.106.244.200:3800/api/v1/banners";
 
 export default function Banners() {
   const [banners, setBanners] = useState([]);
   const [loading, setLoading] = useState(true);
+
   const [selectedBanner, setSelectedBanner] = useState(null);
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  
 
-  // States for form (used for add & edit)
+  // form states
   const [imageFile, setImageFile] = useState(null);
   const [title, setTitle] = useState("");
   const [link, setLink] = useState("");
   const [productId, setProductId] = useState(0);
   const [type, setType] = useState("discount");
 
-  // fetch banners
+  // ------------------ FETCH ------------------
   const fetchBanners = async () => {
     setLoading(true);
     try {
       const response = await fetch(API_URL);
       const result = await response.json();
-      if (response.ok) {
-        setBanners(result.data);
-      } else {
-        toast.error(result.message || "Failed to fetch banners");
-      }
-    } catch (error) {
+
+      if (response.ok) setBanners(result.data);
+      else toast.error(result.message);
+    } catch (err) {
       toast.error("Error fetching banners");
     }
     setLoading(false);
   };
 
-  // add banner
+  useEffect(() => {
+    fetchBanners();
+  }, []);
+
+  // ------------------ ADD ------------------
   const addBanner = async (e) => {
     e.preventDefault();
 
@@ -50,32 +54,30 @@ export default function Banners() {
     formData.append("productId", productId);
     formData.append("type", type);
 
+    // console.log(imageFile)
+
     try {
       const token = localStorage.getItem("token");
       const response = await fetch(API_URL, {
         method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` },
         body: formData,
       });
 
-      const result = await response.json();
+      const res = await response.json();
 
       if (response.ok) {
-        toast.success("Banner added successfully!");
+        toast.success("Banner added");
         fetchBanners();
         setIsAddModalOpen(false);
         resetForm();
-      } else {
-        toast.error(result.message || "Failed to add banner");
-      }
-    } catch (error) {
+      } else toast.error(res.message);
+    } catch {
       toast.error("Error adding banner");
     }
   };
 
-  // edit banner
+  // ------------------ EDIT ------------------
   const editBanner = async (e) => {
     e.preventDefault();
 
@@ -89,47 +91,38 @@ export default function Banners() {
     try {
       const token = localStorage.getItem("token");
       const response = await fetch(`${API_URL}/${selectedBanner.id}`, {
-        method:"PATCH",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        method: "PATCH",
+        headers: { Authorization: `Bearer ${token}` },
         body: formData,
       });
 
-      const result = await response.json();
-
+      const res = await response.json();
       if (response.ok) {
-        toast.success("Banner updated successfully!");
+        toast.success("Banner updated");
         fetchBanners();
         setIsEditModalOpen(false);
         resetForm();
-      } else {
-        toast.error(result.message || "Failed to update banner");
-      }
-    } catch (error) {
+      } else toast.error(res.message);
+    } catch {
       toast.error("Error updating banner");
     }
   };
 
-  // delete banner
+  // ------------------ DELETE ------------------
   const deleteBanner = async (id) => {
     try {
       const token = localStorage.getItem("token");
       const response = await fetch(`${API_URL}/${id}`, {
         method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` },
       });
 
       if (response.ok) {
-        toast.success("Banner deleted successfully!");
-        setBanners(banners.filter((banner) => banner.id !== id));
+        toast.success("Banner deleted");
+        setBanners(banners.filter((b) => b.id !== id));
         setIsModalOpen(false);
-      } else {
-        toast.error("Failed to delete banner");
-      }
-    } catch (error) {
+      } else toast.error("Delete failed");
+    } catch {
       toast.error("Error deleting banner");
     }
   };
@@ -142,35 +135,27 @@ export default function Banners() {
     setImageFile(null);
   };
 
-  useEffect(() => {
-    fetchBanners();
-  }, []);
-
-  if(banners === null) {
-    return (
-      <div className="p-6">
-        <Spin size="large" />
-      </div>
-    );
-  }
 
   return (
     <div className="p-6">
+
+      {/* HEADER */}
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Banners</h1>
-        <button
+
+        <Button
+          type="primary"
+          icon={<Plus size={18} />}
+          style={{ background: "#e3010f" }}
           onClick={() => setIsAddModalOpen(true)}
-          className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
         >
-          <Plus size={20} /> Add Banner
-        </button>
+          Add Banner
+        </Button>
       </div>
 
-      {/* banners grid */}
+      {/* GRID */}
       {loading ? (
-       <div className="flex justify-center items-center">
-         <Spin size="large" />
-       </div>
+        <div className="flex justify-center items-center"><Spin size="large" /></div>
       ) : banners.length === 0 ? (
         <p className="text-gray-500">No banners found.</p>
       ) : (
@@ -178,46 +163,45 @@ export default function Banners() {
           {banners.map((banner) => (
             <div
               key={banner.id}
-              className="bg-white shadow-md rounded-lg overflow-hidden cursor-pointer hover:shadow-lg transition"
+              className="bg-white shadow rounded-lg overflow-hidden cursor-pointer hover:shadow-lg transition"
               onClick={() => {
                 setSelectedBanner(banner);
                 setIsModalOpen(true);
               }}
             >
-              <img
-                src={banner.imagePath}
-                alt={`Banner ${banner.id}`}
-                className="w-full h-48 object-cover"
-              />
+              <img src={banner.imagePath} className="w-full h-48 object-cover" />
               <div className="p-4">
-                <p className="text-sm text-gray-600">ID: {banner.id}</p>
+                <p className="text-gray-600 text-sm">ID: {banner.id}</p>
               </div>
             </div>
           ))}
         </div>
       )}
 
-      {/* Modal Details */}
-      {isModalOpen && selectedBanner && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-60 z-50">
-          <div className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full relative">
-            <img
-              src={selectedBanner.imagePath}
-              alt="Selected Banner"
-              className="w-full h-60 object-cover rounded-lg mb-4"
-            />
-            <p className="mb-2 text-gray-700">ID: {selectedBanner.id}</p>
+      {/* ------------------ VIEW MODAL ------------------ */}
+      <Modal
+        open={isModalOpen}
+        onCancel={() => setIsModalOpen(false)}
+        footer={null}
+        centered
+      >
+        {selectedBanner && (
+          <div>
+            <img src={selectedBanner.imagePath} className="w-full h-60 object-cover rounded mb-4" />
 
-            {/* icons */}
-            <div className="flex justify-end gap-4 mt-4 text-gray-700">
-              <X
-                className="cursor-pointer hover:text-red-600"
-                size={22}
-                onClick={() => setIsModalOpen(false)}
-              />
-              <Pencil
-                className="cursor-pointer hover:text-blue-600"
-                size={22}
+            <div className="flex justify-end gap-2">
+              <Button
+                danger
+                icon={<Trash size={16} />}
+                onClick={() => deleteBanner(selectedBanner.id)}
+              >
+                Delete
+              </Button>
+
+              <Button
+                type="primary"
+                icon={<Pencil size={16} />}
+                style={{ background: "#e3010f" }}
                 onClick={() => {
                   setIsModalOpen(false);
                   setIsEditModalOpen(true);
@@ -225,156 +209,97 @@ export default function Banners() {
                   setLink(selectedBanner.link || "");
                   setProductId(selectedBanner.productId || 0);
                   setType(selectedBanner.type || "discount");
-                  setImageFile(null);
                 }}
-              />
-              <Trash
-                className="cursor-pointer hover:text-red-600"
-                size={22}
-                onClick={() => deleteBanner(selectedBanner.id)}
-              />
+              >
+                Edit
+              </Button>
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </Modal>
 
-      {/* Modal Add Banner */}
-      {isAddModalOpen && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-60 z-50">
-          <div className="bg-white p-6 rounded-lg shadow-lg max-w-lg w-full">
-            <h2 className="text-lg font-bold mb-4">Add New Banner</h2>
-            <form onSubmit={addBanner} className="space-y-4">
-              <input
-                type="file"
-                accept="image/*"
-                onChange={(e) => setImageFile(e.target.files[0])}
-                className="w-full border p-2 rounded"
-              />
+      {/* ------------------ ADD MODAL ------------------ */}
+      <Modal
+        open={isAddModalOpen}
+        title="Add Banner"
+        onCancel={() => setIsAddModalOpen(false)}
+        footer={null}
+      >
+        <form onSubmit={addBanner} className="space-y-4">
 
-              <input
-                type="text"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                placeholder="Title *"
-                className="w-full border p-2 rounded"
-                required
-              />
+          <Upload
+            beforeUpload={() => false}
+            maxCount={1}
+            onChange={({ fileList }) => setImageFile(fileList[0]?.originFileObj || null)}
+          >
+            <Button icon={<UploadOutlined />}>Upload</Button>
+          </Upload>
 
-              <input
-                type="text"
-                value={link}
-                onChange={(e) => setLink(e.target.value)}
-                placeholder="Link"
-                className="w-full border p-2 rounded"
-              />
 
-              <input
-                type="number"
-                value={productId}
-                onChange={(e) => setProductId(e.target.value)}
-                placeholder="Product ID"
-                className="w-full border p-2 rounded"
-              />
+          <Input placeholder="Title" value={title} onChange={(e) => setTitle(e.target.value)} required />
+          <Input placeholder="Link" value={link} onChange={(e) => setLink(e.target.value)} />
+          <Input placeholder="Product ID" value={productId} onChange={(e) => setProductId(e.target.value)} />
 
-              <select
-                value={type}
-                onChange={(e) => setType(e.target.value)}
-                className="w-full border p-2 rounded"
-                required
-              >
-                <option value="discount">discount</option>
-                <option value="new">new</option>
-              </select>
+          <Select
+            value={type}
+            onChange={setType}
+            options={[
+              { value: "discount", label: "discount" },
+              { value: "new", label: "new" },
+            ]}
+            className="w-full"
+          />
 
-              <div className="flex justify-end gap-2 mt-4">
-                <button
-                  type="button"
-                  onClick={() => setIsAddModalOpen(false)}
-                  className="bg-gray-400 text-white px-4 py-2 rounded hover:bg-gray-500"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
-                >
-                  Save
-                </button>
-              </div>
-            </form>
+          <div className="flex justify-end gap-2 mt-4">
+            <Button onClick={() => setIsAddModalOpen(false)}>Cancel</Button>
+            <Button htmlType="submit" type="primary" style={{ background: "#e3010f" }}>
+              Save
+            </Button>
           </div>
-        </div>
-      )}
+        </form>
+      </Modal>
 
-      {/* Modal Edit Banner */}
-      {isEditModalOpen && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-60 z-50">
-          <div className="bg-white p-6 rounded-lg shadow-lg max-w-lg w-full">
-            <h2 className="text-lg font-bold mb-4">Edit Banner</h2>
-            <form onSubmit={editBanner} className="space-y-4">
-              <input
-                type="file"
-                accept="image/*"
-                onChange={(e) => setImageFile(e.target.files[0])}
-                className="w-full border p-2 rounded"
-              />
+      {/* ------------------ EDIT MODAL ------------------ */}
+      <Modal
+        open={isEditModalOpen}
+        title="Edit Banner"
+        onCancel={() => setIsEditModalOpen(false)}
+        footer={null}
+      >
+        <form onSubmit={editBanner} className="space-y-4">
 
-              <input
-                type="text"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                placeholder="Title *"
-                className="w-full border p-2 rounded"
-                required
-              />
+          <Upload
+            beforeUpload={() => false}
+            maxCount={1}
+            onChange={({ fileList }) => setImageFile(fileList[0]?.originFileObj || null)}
+          >
+            <Button icon={<UploadOutlined />}>Upload New (Optional)</Button>
+          </Upload>
 
-              <input
-                type="text"
-                value={link}
-                onChange={(e) => setLink(e.target.value)}
-                placeholder="Link"
-                className="w-full border p-2 rounded"
-              />
+          <Input placeholder="Title" value={title} onChange={(e) => setTitle(e.target.value)} required />
+          <Input placeholder="Link" value={link} onChange={(e) => setLink(e.target.value)} />
+          <Input placeholder="Product ID" value={productId} onChange={(e) => setProductId(e.target.value)} />
 
-              <input
-                type="number"
-                value={productId}
-                onChange={(e) => setProductId(e.target.value)}
-                placeholder="Product ID"
-                className="w-full border p-2 rounded"
-              />
+          <Select
+            value={type}
+            onChange={setType}
+            options={[
+              { value: "discount", label: "discount" },
+              { value: "new", label: "new" },
+            ]}
+            className="w-full"
+          />
 
-              <select
-                value={type}
-                onChange={(e) => setType(e.target.value)}
-                className="w-full border p-2 rounded"
-                required
-              >
-                <option value="discount">discount</option>
-                <option value="new">new</option>
-              </select>
-
-              <div className="flex justify-end gap-2 mt-4">
-                <button
-                  type="button"
-                  onClick={() => setIsEditModalOpen(false)}
-                  className="bg-gray-400 text-white px-4 py-2 rounded hover:bg-gray-500"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-                >
-                  Update
-                </button>
-              </div>
-            </form>
+          <div className="flex justify-end gap-2 mt-4">
+            <Button onClick={() => setIsEditModalOpen(false)}>Cancel</Button>
+            <Button htmlType="submit" type="primary" style={{ background: "#e3010f" }}>
+              Update
+            </Button>
           </div>
-        </div>
-      )}
+        </form>
+      </Modal>
 
-      <ToastContainer position="top-right" autoClose={3000} />
+      <ToastContainer />
     </div>
   );
 }

@@ -30,7 +30,7 @@ export function Sidebar({ items, activePath, brandName = 'Dashboard' }) {
             >
                 <div className="p-6 border-b border-gray-200">
                     <h1 className="text-2xl font-bold text-gray-900">{brandName}</h1>
-                    <p className="text-sm text-gray-500 mt-1">Maghani Admin</p>
+                    <p className="text-sm text-gray-500 mt-1">Acwad Admin</p>
                 </div>
 
                 <nav className="flex-1 overflow-y-auto p-4">

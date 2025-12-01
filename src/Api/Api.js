@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const BASE = "https://api.maghni.acwad.tech/api/v1";
+const BASE = "http://109.106.244.200:3800/api/v1";
 
 //login
 export const LOGIN = `${BASE}/auth/login`;

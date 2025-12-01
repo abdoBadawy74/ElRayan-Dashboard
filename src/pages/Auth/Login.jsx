@@ -43,7 +43,8 @@ export default function Login() {
         <div className="flex items-center justify-center min-h-screen px-4">
             <div className="w-full max-w-md bg-white rounded-2xl shadow-lg p-8">
                 <div className="flex justify-center mb-6">
-                    <h1 className="text-2xl font-bold">Maghani Dashboard</h1>
+                    <img src="" alt="" />
+                    <h1 className="text-2xl font-bold">Acwad Dashboard</h1>
                 </div>
                 <h4 className="text-xl font-semibold text-gray-800 text-center">
                     Hello! let's get started
@@ -76,7 +77,7 @@ export default function Login() {
                     {/* Submit */}
                     <button
                         type="submit"
-                        className="w-full bg-blue-600 text-white font-medium py-2 rounded-lg hover:bg-blue-700 transition"
+                        className="w-full bg-[#e3010f] text-white font-medium py-2 rounded-lg hover:bg-[#b2000b] transition"
                     >
                         SIGN IN
                     </button>
