@@ -32,10 +32,10 @@ function App() {
     { label: 'Zones', icon: LandPlot, path: '/zones' },
     { label: 'Coupons', icon: Puzzle, path: '/coupons' },
     { label: 'Orders', icon: ShoppingCart, path: '/orders' },
-    { label: 'Categories', icon: ChartColumnStacked, path: '/categories' },
-    { label: 'Settings', icon: Settings, path: '/settings' },
-    { label: 'Vendors', icon: Store, path: '/vendors' },
-    { label: 'Vendors Statistics', icon: ChartBar, path: '/vendors/statistics' },
+    // { label: 'Categories', icon: ChartColumnStacked, path: '/categories' },
+    // { label: 'Settings', icon: Settings, path: '/settings' },
+    // { label: 'Vendors', icon: Store, path: '/vendors' },
+    // { label: 'Vendors Statistics', icon: ChartBar, path: '/vendors/statistics' },
     { label: "Users", icon: Users, path: "/users" },
     { label: "Users Statistics", icon: ChartBar, path: "/users/statistics" },
     { label: 'General Settings', icon: Settings, path: '/general-settings' },
@@ -73,11 +73,11 @@ function App() {
                   <Route path="/zones" element={<Zones />} />
                   <Route path="/coupons" element={<Coupons />} />
                   <Route path="/orders" element={<Orders />} />
-                  <Route path="/categories" element={<Categories />} />
-                  <Route path="/settings" element={<SettingsPage />} />
-                  <Route path="/vendors" element={<Vendors />} />
-                  <Route path="/vendors/overview" element={<VendorOverview />} />
-                  <Route path="/vendors/statistics" element={<VendorsStatistics />} />
+                  {/* <Route path="/categories" element={<Categories />} /> */}
+                  {/* <Route path="/settings" element={<SettingsPage />} /> */}
+                  {/* <Route path="/vendors" element={<Vendors />} />
+                  <Route path="/vendors/overview" element={<VendorOverview />} /> 
+                  <Route path="/vendors/statistics" element={<VendorsStatistics />} />*/}
                   <Route path="/users" element={<UsersPage />} />
                   <Route path="/users/growth-trend" element={<GrowthTrend />} />
                   <Route path="/users/statistics" element={<UsersStatistics />} />

@@ -44,7 +44,7 @@ export default function UsersPage() {
             const kw = opts.keyword ?? keyword;
 
             const res = await axios.get(
-                `https://api.maghni.acwad.tech/api/v1/user`,
+                `http://109.106.244.200:3800/api/v1/user`,
                 {
                     headers: baseHeaders,
                     params: {
@@ -76,7 +76,7 @@ export default function UsersPage() {
 
     const fetchUserDetails = async (id) => {
         try {
-            const res = await axios.get(`https://api.maghni.acwad.tech/api/v1/user/${id}`, {
+            const res = await axios.get(`http://109.106.244.200:3800/api/v1/user/${id}`, {
                 headers: baseHeaders,
             });
             setSelectedUser(res.data.data);
@@ -91,7 +91,7 @@ export default function UsersPage() {
         try {
             const hide = message.loading("Processing...", 0);
             const res = await axios.patch(
-                `https://api.maghni.acwad.tech/api/v1/user/${id}/toggle-block`,
+                `http://109.106.244.200:3800/api/v1/user/${id}/toggle-block`,
                 {},
                 { headers: baseHeaders }
             );
@@ -190,11 +190,11 @@ export default function UsersPage() {
             render: (role) => <Tag color="blue">{role}</Tag>,
         },
         {
-            title: "Status",
-            dataIndex: "status",
-            key: "status",
-            render: (status) =>
-                status === "blocked" ? <Tag color="red">Blocked</Tag> : <Tag color="green">Active</Tag>,
+            title: "Gender",
+            dataIndex: "gender",
+            key: "gender",
+            render: (gender) =>
+                gender === null ? <Tag color="gray">Unknown</Tag> : gender === "male" ? <Tag color="blue">Male</Tag> : <Tag color="pink">Female</Tag>,
         },
         {
             title: "Actions",
@@ -205,14 +205,14 @@ export default function UsersPage() {
                         View
                     </Button>
 
-                    <Button
+                    {/* <Button
                         icon={user.status === "blocked" ? <CheckOutlined /> : <StopOutlined />}
                         type={user.status === "blocked" ? "default" : "dashed"}
                         danger={user.status !== "blocked"}
                         onClick={() => toggleBlock(user.id)}
                     >
                         {user.status === "blocked" ? "Unblock" : "Block"}
-                    </Button>
+                    </Button> */}
 
                     <Button danger icon={<DeleteOutlined />} onClick={() => deleteUser(user.id)}>
                         Delete
@@ -303,56 +303,95 @@ export default function UsersPage() {
                 title="User Details"
                 width={700}
             >
-                {selectedUser ? (
+                {!selectedUser ? (
+                    <Spin />
+                ) : (
                     <div className="space-y-4">
+                        {/* HEADER: IMAGE + NAME */}
                         <div className="flex items-center gap-4">
                             <Avatar
                                 src={selectedUser.profileImage || null}
                                 size={80}
                                 alt={selectedUser.fullName}
                             >
-                                {!selectedUser.profileImage && (selectedUser.fullName ? selectedUser.fullName[0] : "?")}
+                                {!selectedUser.profileImage &&
+                                    (selectedUser.fullName ? selectedUser.fullName[0] : "?")}
                             </Avatar>
 
                             <div>
                                 <h3 style={{ fontSize: 18, margin: 0 }}>{selectedUser.fullName}</h3>
                                 <div style={{ color: "#666" }}>{selectedUser.email}</div>
-                                <div style={{ color: "#999", fontSize: 12 }}>Role: {selectedUser.role}</div>
+                                <div style={{ color: "#999", fontSize: 12 }}>
+                                    Role: {selectedUser.role}
+                                </div>
                             </div>
                         </div>
 
-                        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+                        {/* BASIC DETAILS */}
+                        <div
+                            style={{
+                                display: "grid",
+                                gridTemplateColumns: "1fr 1fr",
+                                gap: 8,
+                            }}
+                        >
                             <div><b>Phone:</b> {selectedUser.phoneNumber || "—"}</div>
                             <div><b>Gender:</b> {selectedUser.gender || "—"}</div>
-                            <div><b>Status:</b> {selectedUser.status}</div>
                             <div><b>Email Verified:</b> {selectedUser.isEmailVerified ? "Yes" : "No"}</div>
-                            <div><b>Created:</b> {selectedUser.createdAt ? new Date(selectedUser.createdAt).toLocaleString() : "—"}</div>
                             <div><b>Last Login:</b> {selectedUser.lastLoginAt ? new Date(selectedUser.lastLoginAt).toLocaleString() : "N/A"}</div>
+                            <div><b>Created At:</b> {new Date(selectedUser.createdAt).toLocaleString()}</div>
+                            <div><b>Updated At:</b> {new Date(selectedUser.updatedAt).toLocaleString()}</div>
                         </div>
 
-                        {selectedUser.vendor && (
+                        {/* DEFAULT ADDRESS */}
+                        {selectedUser.addresses && selectedUser.addresses.length > 0 && (
                             <div style={{ borderTop: "1px solid #eee", paddingTop: 12 }}>
-                                <h4 style={{ marginBottom: 8 }}>Vendor Details</h4>
-                                <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
-                                    <Avatar
-                                        src={selectedUser.vendor.logo || null}
-                                        size={64}
-                                        alt={selectedUser.vendor.name}
-                                    />
-                                    <div>
-                                        <div><b>Name:</b> {selectedUser.vendor.name}</div>
-                                        <div><b>Country:</b> {selectedUser.vendor.country?.name || "—"}</div>
-                                        <div><b>Category:</b> {selectedUser.vendor.publicCategory?.name?.ar || "—"}</div>
-                                        <div><b>Delivery Fee:</b> {selectedUser.vendor.deliveryFee ?? "—"} EGP</div>
-                                    </div>
+                                <h4 style={{ marginBottom: 8 }}>Default Address</h4>
+
+                                {(() => {
+                                    const addr = selectedUser.addresses.find(a => a.isDefault) || selectedUser.addresses[0];
+                                    return (
+                                        <div className="space-y-1">
+                                            <div><b>Title:</b> {addr.title}</div>
+                                            <div><b>Description:</b> {addr.description}</div>
+                                            <div><b>Type:</b> {addr.type}</div>
+                                            <div><b>Phone:</b> {selectedUser.phoneNumber}</div>
+
+                                            <div><b>Zone:</b> {addr.zone?.name || "—"}</div>
+                                            <div><b>Shipping Cost:</b> {addr.zone?.shippingCost || "—"}</div>
+                                        </div>
+                                    );
+                                })()}
+                            </div>
+                        )}
+
+                        {/* CART INFO */}
+                        {selectedUser.cart && selectedUser.cart.length > 0 && (
+                            <div style={{ borderTop: "1px solid #eee", paddingTop: 12 }}>
+                                <h4 style={{ marginBottom: 8 }}>Cart</h4>
+                                <div className="space-y-2">
+                                    {selectedUser.cart.map((c) => (
+                                        <div
+                                            key={c.id}
+                                            className="p-3 rounded border bg-gray-50"
+                                        >
+                                            <div><b>Cart ID:</b> {c.id}</div>
+                                            {c.defaultAddress && (
+                                                <div className="mt-2 text-sm">
+                                                    <b>Default Cart Address:</b> {c.defaultAddress.title}
+                                                    <br />
+                                                    <span style={{ color: "#666" }}>{c.defaultAddress.description}</span>
+                                                </div>
+                                            )}
+                                        </div>
+                                    ))}
                                 </div>
                             </div>
                         )}
                     </div>
-                ) : (
-                    <Spin />
                 )}
             </Modal>
+
         </div>
     );
 }
