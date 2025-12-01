@@ -46,6 +46,13 @@ export default function ZoneMapModal({ visible, onClose, zone }) {
 
   return (
     <Modal open={visible} footer={null} onCancel={onClose} width={900} title={zone.name}>
+
+      {/* shipping cost */}
+      <div style={{ marginBottom: 12, fontWeight: "bold", color: "#333" }}>
+        Shipping Cost:  <span style={{ color: "#e3010f" }}>EGP {zone.shippingCost}</span>
+      </div>
+
+
       <div style={{ height: 500 }}>
         <MapContainer
           key={mapKey} // مفتاح لإعادة تهيئة الخريطة

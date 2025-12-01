@@ -45,8 +45,8 @@ export function Sidebar({ items, activePath, brandName = 'Dashboard' }) {
                                         to={item.path}
                                         onClick={() => setIsMobileOpen(false)}
                                         className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 ${isActive
-                                            ? 'bg-blue-50 text-blue-600 font-medium shadow-sm'
-                                            : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'
+                                            ? 'bg-red-50 text-[#e3010f] font-medium shadow-sm'
+                                            : 'text-gray-700 hover:bg-red-50 hover:text-[#e3010f]'
                                             }`}
                                     >
                                         <Icon className="w-5 h-5 flex-shrink-0" />
@@ -61,7 +61,7 @@ export function Sidebar({ items, activePath, brandName = 'Dashboard' }) {
                 {/* الجزء السفلي - المستخدم */}
                 <div className="p-4 border-t border-gray-200">
                     <div className="flex items-center gap-3 px-4 py-3">
-                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white font-semibold">
+                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-red-500 to-red-600 flex items-center justify-center text-white font-semibold">
                             A
                         </div>
                         <div className="flex-1 min-w-0">

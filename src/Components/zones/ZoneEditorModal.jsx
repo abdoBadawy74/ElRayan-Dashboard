@@ -126,7 +126,7 @@ export default function ZoneEditorModal({ visible, onClose, onSubmit, initialZon
           coordinates: [toGeoJsonPolygonCoords(polygonLatLngs)[0]]
         },
         isActive: values.isActive || false,
-        // shippingCost: values.shippingCost || "0.00"
+        shippingCost: values.shippingCost || "0.00"
       };
 
       await onSubmit(body);
@@ -149,6 +149,9 @@ export default function ZoneEditorModal({ visible, onClose, onSubmit, initialZon
           <Switch />
         </Form.Item>
 
+        <Form.Item name="shippingCost" label="Shipping Cost" rules={[{ required: true }]}>
+          <Input prefix="EGP" type="number" step="0.01" min="0" />
+        </Form.Item>
      
 
         <div style={{ height: 450, marginBottom: 12 }}>
