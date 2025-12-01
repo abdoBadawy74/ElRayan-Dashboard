@@ -3,7 +3,7 @@ import axios from "axios";
 const BASE = "http://109.106.244.200:3800/api/v1";
 
 //login
-export const LOGIN = `${BASE}/auth/login`;
+export const LOGIN = `/api/v1/auth/login`;
 
 //Bannars
 export const BANNERS = `${BASE}/banners`;
@@ -11,7 +11,7 @@ export const BANNERS = `${BASE}/banners`;
 // zones
 
 const API = axios.create({
-  baseURL: "http://109.106.244.200:3800/api/v1",
+  baseURL: "http://109.106.244.200:3800/api/v1/zones",
   headers: {
     "Content-Type": "application/json",
     Authorization: `Bearer ${localStorage.getItem("token")}`,
