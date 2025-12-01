@@ -34,7 +34,7 @@ export default function Orders() {
     try {
       setLoadingOrders(true);
       const res = await axios.get(
-        `https://api.maghni.acwad.tech/api/v1/orders?page=${page}&limit=${limit}`,
+        `http://109.106.244.200:3800/api/v1/orders?page=${page}&limit=${limit}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       setOrders(res.data.data.items);
@@ -60,7 +60,7 @@ export default function Orders() {
         notes: "status updated from dashboard",
       };
       await axios.patch(
-        `https://api.maghni.acwad.tech/api/v1/orders/${orderId}`,
+        `http://109.106.244.200:3800/api/v1/orders/${orderId}`,
         body,
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -77,10 +77,10 @@ export default function Orders() {
       setLoadingDetails(true);
       setSelectedOrder(null);
       const res = await axios.get(
-        `https://api.maghni.acwad.tech/api/v1/orders/admin/${orderId}`,
+        `http://109.106.244.200:3800/api/v1/orders/${orderId}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      setSelectedOrder(res.data);
+      setSelectedOrder(res.data.data);
     } catch {
       toast.error("❌ Failed to load order details");
     } finally {
@@ -97,30 +97,28 @@ export default function Orders() {
       render: (text) => <strong>{text}</strong>,
     },
     {
-      title: "Customer",
-      dataIndex: ["user", "fullName"],
-      key: "customer",
+      title: "Subtotal",
+      dataIndex: "subtotal",
+      key: "subtotal",
+      render: (text) => `${text} egp`,
     },
     {
-      title: "Vendor",
-      dataIndex: ["vendor", "name"],
-      key: "vendor",
-      render: (text, record) => (
-        <span className="flex items-center gap-2">
-          <img
-            src={record.vendor?.logo}
-            alt={text}
-            className="w-6 h-6 rounded-full"
-          />
-          {text}
-        </span>
-      ),
+      title: "Discount",
+      dataIndex: "discountAmount",
+      key: "discountAmount",
+      render: (text) => `${text} egp`,
+    },
+    {
+      title: "Shipping",
+      dataIndex: "shippingAmount",
+      key: "shippingAmount",
+      render: (text) => `${text} egp`,
     },
     {
       title: "Total",
       dataIndex: "totalAmount",
       key: "total",
-      render: (text, record) => `${text} ${record.currency}`,
+      render: (text) => `${text} egp`,
     },
     {
       title: "Status",
@@ -166,19 +164,19 @@ export default function Orders() {
       ),
     },
   ];
-
+  console.log(selectedOrder)
   return (
     <div className="p-6 ">
       <ToastContainer />
 
       {/* Statistics Cards */}
-      <Row gutter={16} className="mb-6">
+      {/* <Row gutter={16} className="mb-6">
         <Col span={12}>
           <Card>
             <div className="flex justify-between items-center">
               <div>
                 <h3 className="text-gray-500">Total Customers</h3>
-                <p className="text-xl font-bold">{stats.totalUniqueCustomers}</p>
+                <p className="text-xl font-bold">{stats?.totalUniqueCustomers}</p>
               </div>
               <div className="text-3xl text-blue-500">👥</div>
             </div>
@@ -189,13 +187,13 @@ export default function Orders() {
             <div className="flex justify-between items-center">
               <div>
                 <h3 className="text-gray-500">Total Sales</h3>
-                <p className="text-xl font-bold">{stats.totalSales} EGP</p>
+                <p className="text-xl font-bold">{stats?.totalSales} EGP</p>
               </div>
               <div className="text-3xl text-green-500">💰</div>
             </div>
           </Card>
         </Col>
-      </Row>
+      </Row> */}
 
       {/* Orders Table */}
       {loadingOrders ? (
@@ -246,28 +244,40 @@ export default function Orders() {
             <h2 className="text-2xl font-bold mb-4">
               Order #{selectedOrder.orderNumber}
             </h2>
-            {/* Vendor Info */}
-            <div className="flex items-center gap-3 mb-4">
-              <img
-                src={selectedOrder.vendor?.logo}
-                alt={selectedOrder.vendor?.name}
-                className="w-12 h-12 rounded-full"
-              />
-              <div>
-                <h3 className="font-bold">{selectedOrder.vendor?.name}</h3>
-                <p>Delivery Fee: {selectedOrder.vendor?.deliveryFee}</p>
-              </div>
+
+            {/* STATUS + PAYMENT */}
+            <div className="mb-4 p-4 bg-gray-50 rounded border">
+              <p>
+                <b>Status:</b> {selectedOrder.statusDescription || selectedOrder.status}
+              </p>
+              <p>
+                <b>Payment:</b> {selectedOrder.paymentMethod} ({selectedOrder.paymentStatus})
+              </p>
             </div>
-            {/* Customer Info */}
+
+            {/* SHIPPING ADDRESS */}
             <div className="mb-4">
-              <h3 className="font-semibold mb-2">Customer Info</h3>
-              <p>Name: {selectedOrder.user?.fullName}</p>
-              <p>Email: {selectedOrder.user?.email}</p>
-              <p>Phone: {selectedOrder.shippingAddress?.phone1}</p>
+              <h3 className="font-semibold mb-2">Shipping Address</h3>
+              <p><b>Phone:</b> {selectedOrder.shippingAddress?.phone1}</p>
+              <p><b>Title:</b> {selectedOrder.shippingAddress?.title}</p>
+              <p><b>Description:</b> {selectedOrder.shippingAddress?.description}</p>
             </div>
-            {/* Products */}
+
+            {/* SUMMARY */}
+            <div className="mb-4 p-4 bg-gray-50 rounded border">
+              <p><b>Subtotal:</b> {selectedOrder.subtotal}</p>
+              <p><b>Discount:</b> {selectedOrder.discountAmount}</p>
+              <p><b>Shipping:</b> {selectedOrder.shippingAmount}</p>
+              <hr className="my-2" />
+              <p className="font-bold text-lg">
+                Total: {selectedOrder.totalAmount}
+              </p>
+            </div>
+
+            {/* PRODUCTS */}
             <div>
               <h3 className="font-semibold mb-2">Products</h3>
+
               {selectedOrder.orderItems?.map((item) => (
                 <div
                   key={item.id}
@@ -275,32 +285,34 @@ export default function Orders() {
                 >
                   <div className="flex items-center gap-3">
                     <img
-                      src={item.productImages[0]}
+                      src={item.productImages?.[0]}
                       alt={item.productName}
                       className="w-16 h-16 object-cover rounded"
                     />
+
                     <div>
                       <p className="font-bold">{item.productName}</p>
+
                       <p className="text-sm text-gray-600">
-                        Qty: {item.quantity} × {item.unitPrice} {selectedOrder.currency}
+                        Qty: {item.quantity} × {item.unitPrice}
                       </p>
-                      {item.variant && (
-                        <p className="text-xs text-gray-500">
-                          Variant: {item.variant.name} ({item.variant.price}{" "}
-                          {selectedOrder.currency})
+
+                      {item.discount > 0 && (
+                        <p className="text-xs text-green-600">
+                          Discount: {item.discount}%
                         </p>
                       )}
                     </div>
                   </div>
-                  <p className="font-bold">
-                    {item.totalPrice} {selectedOrder.currency}
-                  </p>
+
+                  <p className="font-bold">{item.totalPrice}</p>
                 </div>
               ))}
             </div>
           </>
         )}
       </Modal>
+
     </div>
   );
 }
