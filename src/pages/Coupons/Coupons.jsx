@@ -18,7 +18,7 @@ import { Modal, Input, Select, Checkbox, Button } from 'antd';
 
 
 const API_URL =
-    "https://api.maghni.acwad.tech/api/v1/coupons?status=active&page=1&limit=10&sortOrder=ASC";
+    "http://109.106.244.200:3800/api/v1/coupons?status=active&page=1&limit=10&sortOrder=ASC";
 
 export default function Coupons() {
     const [coupons, setCoupons] = useState([]);
@@ -46,7 +46,7 @@ export default function Coupons() {
         usageLimit: 0,
         usageLimitPerUser: 0,
         applicableCategories: [],
-        applicableVendors: [],
+        // applicableVendors: [],
         applicableProducts: [],
         excludedCategories: [],
         excludedProducts: [],
@@ -81,7 +81,7 @@ export default function Coupons() {
     const handleAnalytics = async (id, code) => {
         try {
             const res = await fetch(
-                `https://api.maghni.acwad.tech/api/v1/coupons/${id}/analytics`,
+                `http://109.106.244.200:3800/api/v1/coupons/${id}/analytics`,
                 { headers: { Authorization: `Bearer ${token}` } }
             );
             const data = await res.json();
@@ -122,7 +122,7 @@ export default function Coupons() {
             usageLimit: editData.usageLimit || 0,
             usageLimitPerUser: editData.usageLimitPerUser || 0,
             applicableCategories: editData.applicableCategories || [],
-            applicableVendors: editData.applicableVendors || [],
+            // applicableVendors: editData.applicableVendors || [],
             applicableProducts: editData.applicableProducts || [],
             excludedCategories: editData.excludedCategories || [],
             excludedProducts: editData.excludedProducts || [],
@@ -135,7 +135,7 @@ export default function Coupons() {
 
         try {
             const res = await fetch(
-                `https://api.maghni.acwad.tech/api/v1/coupons/${editData.id}`,
+                `http://109.106.244.200:3800/api/v1/coupons/${editData.id}`,
                 {
                     method: "PATCH",
                     headers: {
@@ -175,7 +175,7 @@ export default function Coupons() {
 
         try {
             const res = await fetch(
-                `https://api.maghni.acwad.tech/api/v1/coupons`,
+                `http://109.106.244.200:3800/api/v1/coupons`,
                 {
                     method: "POST",
                     headers: {
@@ -208,12 +208,13 @@ export default function Coupons() {
             <ToastContainer />
             <div className="flex justify-between items-center mb-6">
                 <h1 className="text-3xl font-extrabold text-gray-800">🎟️ Coupons</h1>
-                <button
+                <Button
                     onClick={() => setShowAdd(true)}
-                    className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700"
+                    type="primary"
+                    className="flex items-center gap-2 text-white px-4 py-2 rounded-lg hover:bg-green-700"
                 >
                     <FaPlus /> Add Coupon
-                </button>
+                </Button>
             </div>
 
             {loading ? (
