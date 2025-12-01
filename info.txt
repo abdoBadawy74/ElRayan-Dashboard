@@ -1,0 +1,7 @@
+admin@gmail.com
+12345678
+
+//api
+http://109.106.244.200:3800/api/docs#/
+
+#e3010f
