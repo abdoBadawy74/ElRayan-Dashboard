@@ -3,7 +3,7 @@ import axios from "axios";
   const BASE = "https://api.elrayan.acwad.tech/api/v1";
 
 //login
-export const LOGIN = `/api/v1/auth/login`;
+export const LOGIN = `${BASE}/auth/login`;
 
 //Bannars
 export const BANNERS = `${BASE}/banners`;
