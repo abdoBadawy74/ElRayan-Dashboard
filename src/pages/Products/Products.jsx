@@ -184,104 +184,112 @@ export default function Products() {
     return (
         <div style={{ padding: 20 }}>
             {/* Header */}
-            <Title level={2} style={{ marginBottom: 20 }}>
-                Product Management
-            </Title>
+            <div>
+                <Title level={2} style={{ marginBottom: 20 }}>
+                    Product Management
+                </Title>
 
-            {/* Loading */}
-            {loading && (
-                <div style={{ textAlign: "center", marginTop: 50 }}>
-                    <Spin size="large" />
+                <div style={{ marginBottom: 20, textAlign: "right" }}>
+                    <Link to="/products/add">
+                        <Button type="primary">Add New Product</Button>
+                    </Link>
+                    </div>
                 </div>
-            )}
 
-            {/* Table */}
-            {!loading && (
-                <Table
-                    rowKey="id"
-                    columns={columns}
-                    dataSource={products}
-                    pagination={{
-                        current: meta.currentPage,
-                        total: meta.totalItems,
-                        pageSize: limit,
-                        onChange: (p, pageSize) => {
-                            setPage(p);
-                            setLimit(pageSize);
-                        },
-                    }}
-                />
-            )}
-
-            {/* VIEW MODAL */}
-            <Modal
-                open={viewModal}
-                onCancel={() => setViewModal(false)}
-                footer={null}
-                title="Product Details"
-                width={600}
-            >
-                {selectedProduct && (
-                    <div>
-                        {
-                            selectedProduct.images.length === 1 ? (
-                                <img
-                                    src={selectedProduct.images?.[0]?.attach}
-                                    style={{
-                                        width: "100%",
-                                        borderRadius: 10,
-                                        marginBottom: 10,
-                                        objectFit: "cover",
-                                    }}
-                                />
-                            ) : (
-                                <div
-                                    style={{
-                                        display: "flex",
-                                        gap: 10,
-                                        overflowX: "auto",
-                                        justifyContent: "start",
-                                        marginBottom: 10,
-                                    }}
-                                >
-                                    {selectedProduct.images.map((img) => (
-                                        <img
-                                            key={img.id}
-                                            src={img.attach}
-                                            style={{
-                                                width: 100,
-                                                height: 100,
-                                                borderRadius: 10,
-                                                objectFit: "cover",
-                                            }}
-                                        />
-                                    ))}
-                                </div>
-                            )
-                        }
-                        <h2>{selectedProduct.name.en}</h2>
-                        <p>{selectedProduct.description.en}</p>
-
-                        <p>
-                            <strong>Price:</strong> {selectedProduct.price_after_discount} EGP
-                        </p>
-
-                        <p>
-                            <strong>Stock:</strong> {selectedProduct.stock}
-                        </p>
-
-                        <p>
-                            <strong>Main Category:</strong>{" "}
-                            {selectedProduct.mainCategory?.name}
-                        </p>
-
-                        <p>
-                            <strong>Sub Category:</strong>{" "}
-                            {selectedProduct.subCategory?.name}
-                        </p>
+                {/* Loading */}
+                {loading && (
+                    <div style={{ textAlign: "center", marginTop: 50 }}>
+                        <Spin size="large" />
                     </div>
                 )}
-            </Modal>
-        </div>
-    );
+
+                {/* Table */}
+                {!loading && (
+                    <Table
+                        rowKey="id"
+                        columns={columns}
+                        dataSource={products}
+                        pagination={{
+                            current: meta.currentPage,
+                            total: meta.totalItems,
+                            pageSize: limit,
+                            onChange: (p, pageSize) => {
+                                setPage(p);
+                                setLimit(pageSize);
+                            },
+                        }}
+                    />
+                )}
+
+                {/* VIEW MODAL */}
+                <Modal
+                    open={viewModal}
+                    onCancel={() => setViewModal(false)}
+                    footer={null}
+                    title="Product Details"
+                    width={600}
+                >
+                    {selectedProduct && (
+                        <div>
+                            {
+                                selectedProduct.images.length === 1 ? (
+                                    <img
+                                        src={selectedProduct.images?.[0]?.attach}
+                                        style={{
+                                            width: "100%",
+                                            borderRadius: 10,
+                                            marginBottom: 10,
+                                            objectFit: "cover",
+                                        }}
+                                    />
+                                ) : (
+                                    <div
+                                        style={{
+                                            display: "flex",
+                                            gap: 10,
+                                            overflowX: "auto",
+                                            justifyContent: "start",
+                                            marginBottom: 10,
+                                        }}
+                                    >
+                                        {selectedProduct.images.map((img) => (
+                                            <img
+                                                key={img.id}
+                                                src={img.attach}
+                                                style={{
+                                                    width: 100,
+                                                    height: 100,
+                                                    borderRadius: 10,
+                                                    objectFit: "cover",
+                                                }}
+                                            />
+                                        ))}
+                                    </div>
+                                )
+                            }
+                            <h2>{selectedProduct.name.en}</h2>
+                            <p>{selectedProduct.description.en}</p>
+
+                            <p>
+                                <strong>Price:</strong> {selectedProduct.price_after_discount} EGP
+                            </p>
+
+                            <p>
+                                <strong>Stock:</strong> {selectedProduct.stock}
+                            </p>
+
+                            <p>
+                                <strong>Main Category:</strong>{" "}
+                                {selectedProduct.mainCategory?.name}
+                            </p>
+
+                            <p>
+                                <strong>Sub Category:</strong>{" "}
+                                {selectedProduct.subCategory?.name}
+                            </p>
+                        </div>
+                    )}
+                </Modal>
+            </div>
+            );
 }

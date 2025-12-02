@@ -24,6 +24,7 @@ import AdminWalletPage from './pages/Wallet/Wallet';
 import { ConfigProvider } from "antd";
 import Products from './pages/Products/Products';
 import EditProduct from './pages/Products/EditProduct';
+import AddProduct from './pages/Products/AddProduct';
 
 
 function App() {
@@ -78,6 +79,7 @@ function App() {
                   <Route path="/orders" element={<Orders />} />
                   <Route path="/products" element={<Products />} />
                   <Route path="/products/:id" element={<EditProduct />} />
+                  <Route path="/products/add" element={<AddProduct />} />
                   {/* <Route path="/categories" element={<Categories />} /> */}
                   {/* <Route path="/settings" element={<SettingsPage />} /> */}
                   {/* <Route path="/vendors" element={<Vendors />} />

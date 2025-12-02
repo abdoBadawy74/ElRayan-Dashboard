@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { Form, Input, InputNumber, Select, Switch, Button, Spin, Upload } from "antd";
 import { Plus, Save } from "lucide-react";
@@ -8,78 +8,45 @@ import Title from "antd/es/skeleton/Title";
 
 const { Option } = Select;
 
-const EditProduct = () => {
-    const { id } = useParams();
+const AddProduct = () => {
     const [form] = Form.useForm();
-    const [product, setProduct] = useState(null);
     const [categories, setCategories] = useState([]);
     const [subCategories, setSubCategories] = useState([]);
     const [loading, setLoading] = useState(true);
     const [fileList, setFileList] = useState([]);
     const token = localStorage.getItem("token");
     const nav = useNavigate();
+
     const headers = {
         Authorization: `Bearer ${token}`,
         "Accept-Language": "en",
     };
 
+    // Fetch categories on mount
     useEffect(() => {
-        const fetchData = async () => {
+        const fetchCategories = async () => {
             try {
-                setLoading(true);
-                // Fetch product
-                const productRes = await axios.get(`http://109.106.244.200:3800/api/v1/product/${id}`, { headers });
-                const data = productRes.data.data;
-                setProduct(data);
-
-                // Prepare existing images for Upload component
-                const images = data.images.map(img => ({
-                    uid: img.id,
-                    name: `image_${img.id}.png`,
-                    status: "done",
-                    url: img.attach,
-                }));
-                setFileList(images);
-
-                // Fetch categories
-                const catRes = await axios.get("http://109.106.244.200:3800/api/v1/category", { headers });
-                setCategories(catRes.data.data);
-
-                // Fetch subcategories of the product's main category
-                const mainCatId = data.main_category_id;
-                const subCatRes = await axios.get(`http://109.106.244.200:3800/api/v1/sub-categories?main_category=${mainCatId}`, { headers });
-                setSubCategories(subCatRes.data.data);
-
-                // Set initial form values
-                form.setFieldsValue({
-                    name_ar: data.name.ar,
-                    name_en: data.name.en,
-                    description_ar: data.description.ar,
-                    description_en: data.description.en,
-                    price: data.price,
-                    supplier_price: data.supplier_price,
-                    discount: data.discount,
-                    discount_type: data.discount_type,
-                    main_category_id: mainCatId,
-                    sub_category_id: data.sub_category_id,
-                    stock: data.stock,
-                    isFeatured: data.isFeatured,
-                    isHidden: data.isHidden,
-                });
+                const res = await axios.get("http://109.106.244.200:3800/api/v1/category", { headers });
+                setCategories(res.data.data);
             } catch (error) {
                 console.error(error);
+                toast.error("Failed to load categories");
             } finally {
                 setLoading(false);
             }
         };
-
-        fetchData();
-    }, [id]);
+        fetchCategories();
+    }, []);
 
     const handleMainCategoryChange = async (value) => {
         form.setFieldsValue({ sub_category_id: null });
-        const res = await axios.get(`http://109.106.244.200:3800/api/v1/sub-categories?main_category=${value}`, { headers });
-        setSubCategories(res.data.data);
+        try {
+            const res = await axios.get(`http://109.106.244.200:3800/api/v1/sub-categories?main_category=${value}`, { headers });
+            setSubCategories(res.data.data);
+        } catch (error) {
+            console.error(error);
+            toast.error("Failed to load subcategories");
+        }
     };
 
     const onFinish = async (values) => {
@@ -96,24 +63,24 @@ const EditProduct = () => {
             formData.append("main_category_id", values.main_category_id);
             formData.append("sub_category_id", values.sub_category_id);
             formData.append("stock", values.stock);
-            formData.append("isFeatured", values.isFeatured);
-            formData.append("isHidden", values.isHidden);
+            // formData.append("isFeatured", values.isFeatured);
+            // formData.append("isHidden", values.isHidden);
 
-            // Append new files only
+            // Append images
             fileList.forEach(file => {
                 if (file.originFileObj) formData.append("images", file.originFileObj);
             });
 
-            await axios.patch(`http://109.106.244.200:3800/api/v1/product/${id}`, formData, {
-                headers: { ...headers, "Content-Type": "multipart/form-data" }
+            // POST for new product
+            await axios.post(`http://109.106.244.200:3800/api/v1/product`, formData, {
+                headers: { ...headers, "Content-Type": "multipart/form-data" },
             });
-            toast.success("Product updated successfully!");
-            setTimeout(() => {
-                nav("/products");
-            }, 1500);
+
+            toast.success("Product added successfully!");
+            setTimeout(() => nav("/products"), 1500);
         } catch (error) {
             console.error(error);
-            toast.error("Failed to update product.");
+            toast.error("Failed to add product.");
         }
     };
 
@@ -122,7 +89,7 @@ const EditProduct = () => {
     return (
         <Form form={form} layout="vertical" onFinish={onFinish} style={{ maxWidth: 800, margin: "auto" }}>
             <ToastContainer />
-            <h1 style={{ textAlign: "center", marginBottom: 20, fontSize: 24 }}>Edit Product</h1>
+            <h1 style={{ textAlign: "center", marginBottom: 20, fontSize: 24 }}>Add New Product</h1>
             <Form.Item label="Name (AR)" name="name_ar" rules={[{ required: true }]}><Input /></Form.Item>
             <Form.Item label="Name (EN)" name="name_en" rules={[{ required: true }]}><Input /></Form.Item>
             <Form.Item label="Description (AR)" name="description_ar"><Input.TextArea rows={3} /></Form.Item>
@@ -162,4 +129,4 @@ const EditProduct = () => {
     );
 };
 
-export default EditProduct;
+export default AddProduct;
