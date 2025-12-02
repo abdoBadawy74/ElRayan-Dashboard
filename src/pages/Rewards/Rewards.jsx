@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Table, Modal, Form, Input, InputNumber, Switch, Button, Popconfirm, Space, message, Tag } from "antd";
 import { Edit2, Trash2, PlusCircle, } from "lucide-react";
 
-const BASE_URL = "http://109.106.244.200:3800/api/v1";
+const BASE_URL = "https://api.elrayan.acwad.tech/api/v1";
 
 function fmtDateForInput(iso) { if (!iso) return ""; const d = new Date(iso); const pad = (n) => String(n).padStart(2, '0'); const yyyy = d.getFullYear(); const mm = pad(d.getMonth() + 1); const dd = pad(d.getDate()); const hh = pad(d.getHours()); const min = pad(d.getMinutes()); return `${yyyy}-${mm}-${dd}T${hh}:${min}` }
 

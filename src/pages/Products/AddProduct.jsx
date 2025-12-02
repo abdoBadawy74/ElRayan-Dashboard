@@ -26,7 +26,7 @@ const AddProduct = () => {
     useEffect(() => {
         const fetchCategories = async () => {
             try {
-                const res = await axios.get("http://109.106.244.200:3800/api/v1/category", { headers });
+                const res = await axios.get("https://api.elrayan.acwad.tech/api/v1/category", { headers });
                 setCategories(res.data.data);
             } catch (error) {
                 console.error(error);
@@ -41,7 +41,7 @@ const AddProduct = () => {
     const handleMainCategoryChange = async (value) => {
         form.setFieldsValue({ sub_category_id: null });
         try {
-            const res = await axios.get(`http://109.106.244.200:3800/api/v1/sub-categories?main_category=${value}`, { headers });
+            const res = await axios.get(`https://api.elrayan.acwad.tech/api/v1/sub-categories?main_category=${value}`, { headers });
             setSubCategories(res.data.data);
         } catch (error) {
             console.error(error);
@@ -72,7 +72,7 @@ const AddProduct = () => {
             });
 
             // POST for new product
-            await axios.post(`http://109.106.244.200:3800/api/v1/product`, formData, {
+            await axios.post(`https://api.elrayan.acwad.tech/api/v1/product`, formData, {
                 headers: { ...headers, "Content-Type": "multipart/form-data" },
             });
 

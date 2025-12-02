@@ -29,7 +29,7 @@ export default function Products() {
     const token = localStorage.getItem("token");
 
     const api = axios.create({
-        baseURL: "http://109.106.244.200:3800/api/v1",
+        baseURL: "https://api.elrayan.acwad.tech/api/v1",
         headers: { Authorization: `Bearer ${token}`, lang: "en" },
     });
 

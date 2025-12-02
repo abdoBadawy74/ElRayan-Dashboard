@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const BASE = "http://109.106.244.200:3800/api/v1";
+  const BASE = "https://api.elrayan.acwad.tech/api/v1";
 
 //login
 export const LOGIN = `/api/v1/auth/login`;
@@ -11,7 +11,7 @@ export const BANNERS = `${BASE}/banners`;
 // zones
 
 const API = axios.create({
-  baseURL: "http://109.106.244.200:3800/api/v1/",
+  baseURL: "https://api.elrayan.acwad.tech/api/v1/",
   headers: {
     "Content-Type": "application/json",
     Authorization: `Bearer ${localStorage.getItem("token")}`,

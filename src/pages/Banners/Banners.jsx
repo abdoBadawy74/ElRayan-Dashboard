@@ -5,7 +5,7 @@ import { Plus, X, Pencil, Trash } from "lucide-react";
 import { Spin, Button, Modal, Input, Select, Upload } from "antd";
 import { UploadOutlined } from "@ant-design/icons";
 
-const API_URL = "http://109.106.244.200:3800/api/v1/banners";
+const API_URL = "https://api.elrayan.acwad.tech/api/v1/banners";
 
 export default function Banners() {
   const [banners, setBanners] = useState([]);

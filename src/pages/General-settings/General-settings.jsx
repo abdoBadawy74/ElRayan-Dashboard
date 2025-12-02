@@ -22,7 +22,7 @@ export default function AppVersionSettings() {
     try {
       setChecking(true);
       const res = await axios.get(
-        "http://109.106.244.200:3800/api/v1/app-version/check",
+        "https://api.elrayan.acwad.tech/api/v1/app-version/check",
         { headers: { Authorization: `Bearer ${token}` } }
       );
       setVersionData(res.data);
@@ -40,7 +40,7 @@ export default function AppVersionSettings() {
     try {
       setUpdating(true);
       const res = await axios.patch(
-        "http://109.106.244.200:3800/api/v1/app-version/toggle-app-status",
+        "https://api.elrayan.acwad.tech/api/v1/app-version/toggle-app-status",
         {},
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -59,7 +59,7 @@ export default function AppVersionSettings() {
     try {
       setUpdating(true);
       await axios.put(
-        "http://109.106.244.200:3800/api/v1/app-version/update",
+        "https://api.elrayan.acwad.tech/api/v1/app-version/update",
         values,
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -188,10 +188,10 @@ export default function AppVersionSettings() {
     {/* HTML PAGES CARD */}
     <Card title="Policy & Deletion Pages">
       <div className="flex gap-3">
-        <Button onClick={() => fetchHtml("http://109.106.244.200:3800/api/v1/app-version/privacy-policy-link")}>
+        <Button onClick={() => fetchHtml("https://api.elrayan.acwad.tech/api/v1/app-version/privacy-policy-link")}>
           Privacy Policy
         </Button>
-        <Button onClick={() => fetchHtml("http://109.106.244.200:3800/api/v1/app-version/deletion-link")}>
+        <Button onClick={() => fetchHtml("https://api.elrayan.acwad.tech/api/v1/app-version/deletion-link")}>
           Deletion Policy
         </Button>
       </div>

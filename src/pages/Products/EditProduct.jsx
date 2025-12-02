@@ -28,7 +28,7 @@ const EditProduct = () => {
             try {
                 setLoading(true);
                 // Fetch product
-                const productRes = await axios.get(`http://109.106.244.200:3800/api/v1/product/${id}`, { headers });
+                const productRes = await axios.get(`https://api.elrayan.acwad.tech/api/v1/product/${id}`, { headers });
                 const data = productRes.data.data;
                 setProduct(data);
 
@@ -42,12 +42,12 @@ const EditProduct = () => {
                 setFileList(images);
 
                 // Fetch categories
-                const catRes = await axios.get("http://109.106.244.200:3800/api/v1/category", { headers });
+                const catRes = await axios.get("https://api.elrayan.acwad.tech/api/v1/category", { headers });
                 setCategories(catRes.data.data);
 
                 // Fetch subcategories of the product's main category
                 const mainCatId = data.main_category_id;
-                const subCatRes = await axios.get(`http://109.106.244.200:3800/api/v1/sub-categories?main_category=${mainCatId}`, { headers });
+                const subCatRes = await axios.get(`https://api.elrayan.acwad.tech/api/v1/sub-categories?main_category=${mainCatId}`, { headers });
                 setSubCategories(subCatRes.data.data);
 
                 // Set initial form values
@@ -78,7 +78,7 @@ const EditProduct = () => {
 
     const handleMainCategoryChange = async (value) => {
         form.setFieldsValue({ sub_category_id: null });
-        const res = await axios.get(`http://109.106.244.200:3800/api/v1/sub-categories?main_category=${value}`, { headers });
+        const res = await axios.get(`https://api.elrayan.acwad.tech/api/v1/sub-categories?main_category=${value}`, { headers });
         setSubCategories(res.data.data);
     };
 
@@ -104,7 +104,7 @@ const EditProduct = () => {
                 if (file.originFileObj) formData.append("images", file.originFileObj);
             });
 
-            await axios.patch(`http://109.106.244.200:3800/api/v1/product/${id}`, formData, {
+            await axios.patch(`https://api.elrayan.acwad.tech/api/v1/product/${id}`, formData, {
                 headers: { ...headers, "Content-Type": "multipart/form-data" }
             });
             toast.success("Product updated successfully!");

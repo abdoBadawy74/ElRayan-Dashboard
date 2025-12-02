@@ -2,6 +2,6 @@ admin@gmail.com
 12345678
 
 //api
-http://109.106.244.200:3800/api/docs#/
+https://api.elrayan.acwad.tech/api/docs
 
 #e3010f

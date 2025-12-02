@@ -44,7 +44,7 @@ export default function UsersPage() {
             const kw = opts.keyword ?? keyword;
 
             const res = await axios.get(
-                `http://109.106.244.200:3800/api/v1/user`,
+                `https://api.elrayan.acwad.tech/api/v1/user`,
                 {
                     headers: baseHeaders,
                     params: {
@@ -76,7 +76,7 @@ export default function UsersPage() {
 
     const fetchUserDetails = async (id) => {
         try {
-            const res = await axios.get(`http://109.106.244.200:3800/api/v1/user/${id}`, {
+            const res = await axios.get(`https://api.elrayan.acwad.tech/api/v1/user/${id}`, {
                 headers: baseHeaders,
             });
             setSelectedUser(res.data.data);
@@ -91,7 +91,7 @@ export default function UsersPage() {
         try {
             const hide = message.loading("Processing...", 0);
             const res = await axios.patch(
-                `http://109.106.244.200:3800/api/v1/user/${id}/toggle-block`,
+                `https://api.elrayan.acwad.tech/api/v1/user/${id}/toggle-block`,
                 {},
                 { headers: baseHeaders }
             );
@@ -132,7 +132,7 @@ export default function UsersPage() {
     const handleDeleteOk = async () => {
         try {
             const res = await axios.delete(
-                `http://109.106.244.200:3800/api/v1/user/${deleteUserId}`,
+                `https://api.elrayan.acwad.tech/api/v1/user/${deleteUserId}`,
                 { headers: baseHeaders }
             );
             if (res.status === 200) {

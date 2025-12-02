@@ -18,7 +18,7 @@ import { Modal, Input, Select, Checkbox, Button } from 'antd';
 
 
 const API_URL =
-    "http://109.106.244.200:3800/api/v1/coupons?status=active&page=1&limit=10&sortOrder=ASC";
+    "https://api.elrayan.acwad.tech/api/v1/coupons?status=active&page=1&limit=10&sortOrder=ASC";
 
 export default function Coupons() {
     const [coupons, setCoupons] = useState([]);
@@ -81,7 +81,7 @@ export default function Coupons() {
     const handleAnalytics = async (id, code) => {
         try {
             const res = await fetch(
-                `http://109.106.244.200:3800/api/v1/coupons/${id}/analytics`,
+                `https://api.elrayan.acwad.tech/api/v1/coupons/${id}/analytics`,
                 { headers: { Authorization: `Bearer ${token}` } }
             );
             const data = await res.json();
@@ -135,7 +135,7 @@ export default function Coupons() {
 
         try {
             const res = await fetch(
-                `http://109.106.244.200:3800/api/v1/coupons/${editData.id}`,
+                `https://api.elrayan.acwad.tech/api/v1/coupons/${editData.id}`,
                 {
                     method: "PATCH",
                     headers: {
@@ -175,7 +175,7 @@ export default function Coupons() {
 
         try {
             const res = await fetch(
-                `http://109.106.244.200:3800/api/v1/coupons`,
+                `https://api.elrayan.acwad.tech/api/v1/coupons`,
                 {
                     method: "POST",
                     headers: {

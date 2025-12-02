@@ -34,7 +34,7 @@ export default function Orders() {
     try {
       setLoadingOrders(true);
       const res = await axios.get(
-        `http://109.106.244.200:3800/api/v1/orders?page=${page}&limit=${limit}`,
+        `https://api.elrayan.acwad.tech/api/v1/orders?page=${page}&limit=${limit}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       setOrders(res.data.data.items);
@@ -60,7 +60,7 @@ export default function Orders() {
         notes: "status updated from dashboard",
       };
       await axios.patch(
-        `http://109.106.244.200:3800/api/v1/orders/${orderId}`,
+        `https://api.elrayan.acwad.tech/api/v1/orders/${orderId}`,
         body,
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -77,7 +77,7 @@ export default function Orders() {
       setLoadingDetails(true);
       setSelectedOrder(null);
       const res = await axios.get(
-        `http://109.106.244.200:3800/api/v1/orders/${orderId}`,
+        `https://api.elrayan.acwad.tech/api/v1/orders/${orderId}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       setSelectedOrder(res.data.data);
