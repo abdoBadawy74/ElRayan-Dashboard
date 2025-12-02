@@ -1,5 +1,5 @@
 import { Routes, Route, useLocation } from 'react-router-dom';
-import { Home, Package, ShoppingCart, Users, Settings, LandPlot, Puzzle, ChartColumnStacked, Store, ChartBar, Wallet, } from 'lucide-react';
+import { Home, Package, ShoppingCart, Users, Settings, LandPlot, Puzzle, ChartColumnStacked, Store, ChartBar, Wallet, Gift, } from 'lucide-react';
 import { DashboardLayout } from './Components/DashboardLayout';
 import Dashboard from './pages/Dashboard/Dashboard';
 import Login from './pages/Auth/Login';
@@ -25,6 +25,7 @@ import { ConfigProvider } from "antd";
 import Products from './pages/Products/Products';
 import EditProduct from './pages/Products/EditProduct';
 import AddProduct from './pages/Products/AddProduct';
+import Rewards from './pages/Rewards/Rewards';
 
 
 function App() {
@@ -37,6 +38,7 @@ function App() {
     { label: 'Coupons', icon: Puzzle, path: '/coupons' },
     { label: 'Products', icon: Package, path: '/products' },
     { label: 'Orders', icon: ShoppingCart, path: '/orders' },
+    { label: 'Rewards', icon: Gift, path: '/rewards' },
     // { label: 'Categories', icon: ChartColumnStacked, path: '/categories' },
     // { label: 'Settings', icon: Settings, path: '/settings' },
     // { label: 'Vendors', icon: Store, path: '/vendors' },
@@ -80,6 +82,7 @@ function App() {
                   <Route path="/products" element={<Products />} />
                   <Route path="/products/:id" element={<EditProduct />} />
                   <Route path="/products/add" element={<AddProduct />} />
+                  <Route path="/rewards" element={<Rewards />} />
                   {/* <Route path="/categories" element={<Categories />} /> */}
                   {/* <Route path="/settings" element={<SettingsPage />} /> */}
                   {/* <Route path="/vendors" element={<Vendors />} />
