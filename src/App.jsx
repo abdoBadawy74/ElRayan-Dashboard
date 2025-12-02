@@ -40,7 +40,7 @@ function App() {
     { label: "Users", icon: Users, path: "/users" },
     // { label: "Users Statistics", icon: ChartBar, path: "/users/statistics" },
     { label: 'General Settings', icon: Settings, path: '/general-settings' },
-    { label: 'Wallet', icon: Wallet, path: '/wallet' },
+    // { label: 'Wallet', icon: Wallet, path: '/wallet' },
 
 
 
@@ -83,7 +83,7 @@ function App() {
                   {/* <Route path="/users/growth-trend" element={<GrowthTrend />} /> */}
                   {/* <Route path="/users/statistics" element={<UsersStatistics />} /> */}
                   <Route path='/general-settings' element={<AppVersionSettings />} />
-                  <Route path='/wallet' element={<AdminWalletPage />} />
+                  {/* <Route path='/wallet' element={<AdminWalletPage />} /> */}
                 </Routes>
               </DashboardLayout>
             </RequireAuth>
