@@ -22,6 +22,8 @@ import Zones from './pages/Zones/Zones';
 import AppVersionSettings from './pages/General-settings/General-settings';
 import AdminWalletPage from './pages/Wallet/Wallet';
 import { ConfigProvider } from "antd";
+import Products from './pages/Products/Products';
+import EditProduct from './pages/Products/EditProduct';
 
 
 function App() {
@@ -32,6 +34,7 @@ function App() {
     { label: 'Banners', icon: FaInfoCircle, path: '/banners' },
     { label: 'Zones', icon: LandPlot, path: '/zones' },
     { label: 'Coupons', icon: Puzzle, path: '/coupons' },
+    { label: 'Products', icon: Package, path: '/products' },
     { label: 'Orders', icon: ShoppingCart, path: '/orders' },
     // { label: 'Categories', icon: ChartColumnStacked, path: '/categories' },
     // { label: 'Settings', icon: Settings, path: '/settings' },
@@ -44,7 +47,6 @@ function App() {
 
 
 
-    // { label: 'Products', icon: Package, path: '/products' },
     // { label: 'Customers', icon: Users, path: '/customers' },
     // { label: 'Analytics', icon: BarChart3, path: '/analytics' },
   ];
@@ -74,6 +76,8 @@ function App() {
                   <Route path="/zones" element={<Zones />} />
                   <Route path="/coupons" element={<Coupons />} />
                   <Route path="/orders" element={<Orders />} />
+                  <Route path="/products" element={<Products />} />
+                  <Route path="/products/:id" element={<EditProduct />} />
                   {/* <Route path="/categories" element={<Categories />} /> */}
                   {/* <Route path="/settings" element={<SettingsPage />} /> */}
                   {/* <Route path="/vendors" element={<Vendors />} />
@@ -95,3 +99,4 @@ function App() {
 }
 
 export default App;
+
