@@ -16,6 +16,8 @@ import ExportSummaryPage from "./ExportSummaryPage";
 import CouponsStatsMock from "./Coupons";
 import LowStockProducts from "./LowStockProducts";
 import SalesReport from "./SalesReport";
+import { FaInfoCircle } from "react-icons/fa";
+import { Section } from "lucide-react";
 
 /*
   Simple Tabs layout.
@@ -33,11 +35,13 @@ export default function Dashboard() {
         // { key: "products", label: "Products" },     
         // { key: "coupons", label: "Coupons" },       
         // { key: "shipping", label: "Shipping" },     
-        // { key: "trends", label: "Trends" },         
         // { key: "SuperAdmin", label: "SuperAdmin" }, 
         { key: "analytics", label: "Analytics" },
         { key: "lowStock", label: "Low Stock" },
         { key: "report", label: "Report" },
+        { key: "topCustomers", label: "Top Customers" },
+        { key: "topProducts", label: "Top Products" },
+        { key: "trends", label: "Trends" },         
 
 
         // { key: "top", label: "Top Performers" }     
@@ -120,10 +124,18 @@ export default function Dashboard() {
                     </Suspense>
                 )}
 
-                {activeTab === "products" && (
+                {activeTab === "topProducts" && (
                     <Suspense fallback={<div className="flex justify-center py-20"><PulseLoader /></div>}>
                         <ProductsPerformance />
                     </Suspense>
+                )}
+                {activeTab === "topCustomers" && (
+                    <section>
+                        <h2>
+                            <FaInfoCircle className="inline mr-2 text-blue-500" />
+                            Top Customers section is under development.
+                        </h2>
+                    </section>
                 )}
 
                 {activeTab === "shipping" && (

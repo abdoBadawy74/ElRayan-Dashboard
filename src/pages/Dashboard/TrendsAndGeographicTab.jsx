@@ -1,220 +1,100 @@
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import axios from "axios";
-import CountUp from "react-countup";
-import { Card, DatePicker, Button, Row, Col, Spin } from "antd";
-import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
-import L from "leaflet";
-import "leaflet/dist/leaflet.css";
+import { Card, Select, InputNumber, Button, Space, message } from "antd";
+import { Search } from "lucide-react";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
+import { toast, ToastContainer } from "react-toastify";
 
-const { RangePicker } = DatePicker;
-
-const markerIcon = new L.Icon({
-    iconUrl: "https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png",
-    iconSize: [25, 41],
-    iconAnchor: [12, 41],
-});
-
-export default function TrendsAndGeographicTab() {
-    const [trends, setTrends] = useState(null);
-    const [geoData, setGeoData] = useState([]);
+export default function Trends() {
     const [loading, setLoading] = useState(false);
-    const [geoLoading, setGeoLoading] = useState(false);
-    const [dates, setDates] = useState([]);
+    const [data, setData] = useState([]);
+    const [type, setType] = useState("daily");
+    const [limit, setLimit] = useState(30);
 
-    // Fetch Trends
-    const fetchTrends = async () => {
+    const fetchData = async () => {
         try {
             setLoading(true);
-            const res = await axios.get(
-                "https://api.maghni.acwad.tech/api/v1/dashboard/trends"
-            );
-            setTrends(res.data);
-        } catch (err) {
-            console.error("Error fetching trends:", err);
+            const res = await axios.get("https://api.elrayan.acwad.tech/api/v1/orders/trends", {
+                params: { type, limit }
+            });
+            const formatted = (res.data || []).map(d => ({
+                date: new Date(d.date).toLocaleDateString(),
+                revenue: d.revenue,
+                orders: d.orders
+            }));
+            setData(formatted);
+        } catch (e) {
+            console.error(e);
+            toast.error(e.response?.data?.message || "Failed to load trends data");
         } finally {
             setLoading(false);
         }
     };
 
-    // Fetch geo data
-    const fetchGeoData = async () => {
-        try {
-            setGeoLoading(true);
-
-            const startDate = dates?.[0]?.format("YYYY-MM-DD");
-            const endDate = dates?.[1]?.format("YYYY-MM-DD");
-
-            const res = await axios.get(
-                "https://api.maghni.acwad.tech/api/v1/dashboard/geographic/stats",
-                {
-                    params: {
-                        startDate: startDate || undefined,
-                        endDate: endDate || undefined,
-                    },
-                }
-            );
-            setGeoData(res.data || []);
-        } catch (err) {
-            console.error("Error fetching geographic data:", err);
-        } finally {
-            setGeoLoading(false);
-        }
-    };
-
     useEffect(() => {
-        fetchTrends();
-        fetchGeoData();
+        fetchData();
     }, []);
 
     return (
-        <div className="space-y-10">
-            <h2 className="text-2xl font-bold mb-4">
-                Dashboard Trends & Geographic Stats
-            </h2>
+        <div className="space-y-5">
+            <ToastContainer />
+            {/* Filters */}
+            <Card className="p-4">
+                <Space wrap size="large">
 
-            {/* ================== Loading Trends ================== */}
-            {loading && (
-                <div className="flex justify-center py-10">
-                    <Spin size="large" />
-                </div>
-            )}
-
-            {/* ================== Trend Cards ================== */}
-            {!loading && trends && (
-                <Row gutter={16}>
-                    <Col xs={24} sm={12} lg={6}>
-                        <TrendCard
-                            title="Revenue"
-                            current={trends.revenue.current}
-                            change={trends.revenue.change}
-                            direction={trends.revenue.direction}
-                            color="#2563eb"
-                            suffix=" EGP"
+                    <div>
+                        <div style={{ fontSize: 12, color: "#666" }}>Trend Type</div>
+                        <Select
+                            style={{ width: 180 }}
+                            value={type}
+                            onChange={setType}
+                            options={[
+                                { value: "daily", label: "Daily" },
+                                { value: "weekly", label: "Weekly" },
+                                { value: "monthly", label: "Monthly" },
+                                // { value: "yearly", label: "Yearly" },
+                            ]}
                         />
-                    </Col>
+                    </div>
 
-                    <Col xs={24} sm={12} lg={6}>
-                        <TrendCard
-                            title="Orders"
-                            current={trends.orders.current}
-                            change={trends.orders.change}
-                            direction={trends.orders.direction}
-                            color="#10b981"
-                        />
-                    </Col>
+                    <div>
+                        <div style={{ fontSize: 12, color: "#666" }}>Limit</div>
+                        <InputNumber min={1} max={365} value={limit} onChange={v => setLimit(v)} />
+                    </div>
 
-                    <Col xs={24} sm={12} lg={6}>
-                        <TrendCard
-                            title="Users"
-                            current={trends.users.current}
-                            change={trends.users.change}
-                            direction={trends.users.direction}
-                            color="#f59e0b"
-                        />
-                    </Col>
+                    <Button
+                        type="primary"
+                        icon={<Search size={16} />}
+                        loading={loading}
+                        onClick={fetchData}
+                        style={{ marginTop: 20 }}
+                    >
+                        Apply
+                    </Button>
+                </Space>
+            </Card>
 
-                    <Col xs={24} sm={12} lg={6}>
-                        <TrendCard
-                            title="Avg Order Value"
-                            current={trends.averageOrderValue.current}
-                            change={trends.averageOrderValue.change}
-                            direction={trends.averageOrderValue.direction}
-                            color="#8b5cf6"
-                            suffix=" EGP"
-                        />
-                    </Col>
-                </Row>
-            )}
-
-            {/* ================== Geographic Section ================== */}
-            <div className="space-y-6">
-                <h3 className="text-xl font-semibold">Geographic Statistics</h3>
-
-                {/* Date Range Filter */}
-                <Row gutter={12} align="middle">
-                    <Col>
-                        <RangePicker
-                            value={dates}
-                            onChange={(values) => setDates(values)}
-                        />
-                    </Col>
-                    <Col>
-                        <Button type="primary" onClick={fetchGeoData} loading={geoLoading}>
-                            Apply Filters
-                        </Button>
-                    </Col>
-                </Row>
-
-                {/* ================== Map Loading ================== */}
-                {geoLoading && (
-                    <div className="flex justify-center py-10">
-                        <Spin size="large" />
+            {/* Line Chart */}
+            <Card title="Revenue & Orders Trends">
+                {data.length === 0 ? (
+                    <div style={{ textAlign: "center", color: "#888" }}>No data available</div>
+                ) : (
+                    <div style={{ height: 300 }}>
+                        <ResponsiveContainer width="100%" height="100%">
+                            <LineChart data={data} margin={{ top: 20, right: 30, left: 0, bottom: 5 }}>
+                                <CartesianGrid strokeDasharray="3 3" />
+                                <XAxis dataKey="date" />
+                                <YAxis yAxisId="left" orientation="left" />
+                                <YAxis yAxisId="right" orientation="right" />
+                                <Tooltip />
+                                <Legend />
+                                <Line yAxisId="left" type="monotone" dataKey="revenue" stroke="#8884d8" name="Revenue" />
+                                <Line yAxisId="right" type="monotone" dataKey="orders" stroke="#82ca9d" name="Orders" />
+                            </LineChart>
+                        </ResponsiveContainer>
                     </div>
                 )}
-
-                {/* ================== No Data ================== */}
-                {!geoLoading && geoData.length === 0 && (
-                    <p className="text-center text-gray-600">
-                        No geographic data available.
-                    </p>
-                )}
-
-                {/* ================== Map ================== */}
-                {!geoLoading && geoData.length > 0 && (
-                    <div className="w-full h-[500px] rounded-lg overflow-hidden shadow-lg">
-                        <MapContainer
-                            center={[30, 30]}
-                            zoom={6}
-                            scrollWheelZoom
-                            style={{ width: "100%", height: "100%" }}
-                        >
-                            <TileLayer
-                                attribution='&copy; OpenStreetMap contributors'
-                                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                            />
-
-                            {geoData.map((point, idx) => (
-                                <Marker
-                                    key={idx}
-                                    position={[point.latitude, point.longitude]}
-                                    icon={markerIcon}
-                                >
-                                    <Popup>
-                                        <div className="text-sm">
-                                            <p><strong>Orders:</strong> {point.orderCount}</p>
-                                            <p><strong>Total Revenue:</strong> {point.totalRevenue} EGP</p>
-                                        </div>
-                                    </Popup>
-                                </Marker>
-                            ))}
-                        </MapContainer>
-                    </div>
-                )}
-            </div>
+            </Card>
         </div>
-    );
-}
-
-// ================== Trend Card ==================
-function TrendCard({ title, current, change, direction, color, suffix }) {
-    const arrow =
-        direction === "up" ? "▲" : direction === "down" ? "▼" : "→";
-
-    const arrowColor =
-        direction === "up"
-            ? "text-green-300"
-            : direction === "down"
-            ? "text-red-300"
-            : "text-gray-300";
-
-    return (
-        <Card style={{ backgroundColor: color, color: "#fff" }}>
-            <h4 className="text-sm uppercase opacity-80">{title}</h4>
-            <p className="text-2xl font-bold mt-1">
-                <CountUp end={current || 0} duration={2.5} separator="," decimals={2} />
-                {suffix && <span>{suffix}</span>}
-            </p>
-            <p className={`text-sm mt-1 ${arrowColor}`}>{arrow} {change?.toFixed(2)}%</p>
-        </Card>
     );
 }
