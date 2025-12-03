@@ -19,8 +19,8 @@ import { Link } from "react-router-dom";
 import {
     EyeOutlined,
     DeleteOutlined,
-    StopOutlined,
-    CheckOutlined,
+    BarChartOutlined
+
 } from "@ant-design/icons";
 
 export default function UsersPage() {
@@ -121,6 +121,7 @@ export default function UsersPage() {
             toast.error("❌ Failed to toggle block status");
         }
     };
+
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [deleteUserId, setDeleteUserId] = useState(null);
 
@@ -152,6 +153,28 @@ export default function UsersPage() {
     const handleDeleteCancel = () => {
         setIsDeleteModalOpen(false);
         setDeleteUserId(null);
+    };
+
+    const [analysis, setAnalysis] = useState(null);
+    const [analysisModalOpen, setAnalysisModalOpen] = useState(false);
+    const handleAnalysis = async (id) => {
+        try {
+            const res = await axios.get(
+                `https://api.elrayan.acwad.tech/api/v1/orders/customer-lifetime-value/${id}`,
+                { headers: baseHeaders }
+            );
+            if (res.status === 200) {
+                const data = res.data;
+                setAnalysis(data);
+                setAnalysisModalOpen(true);
+            }
+
+            console.log(analysis);
+
+        } catch (err) {
+            console.error(err);
+            toast.error("❌ Failed to fetch customer lifetime value");
+        }
     };
 
 
@@ -207,14 +230,15 @@ export default function UsersPage() {
                         View
                     </Button>
 
-                    {/* <Button
-                        icon={user.status === "blocked" ? <CheckOutlined /> : <StopOutlined />}
-                        type={user.status === "blocked" ? "default" : "dashed"}
-                        danger={user.status !== "blocked"}
-                        onClick={() => toggleBlock(user.id)}
+                    <Button
+                        icon={<BarChartOutlined />}
+                        type={"dashed"}
+                        onClick={() => handleAnalysis(user.id)}
+
+
                     >
-                        {user.status === "blocked" ? "Unblock" : "Block"}
-                    </Button> */}
+                        Analysis
+                    </Button>
 
                     <Button danger icon={<DeleteOutlined />} onClick={() => showDeleteModal(user.id)}>
                         Delete
@@ -401,6 +425,103 @@ export default function UsersPage() {
                             </div>
                         )}
                     </div>
+                )}
+            </Modal>
+
+
+        
+            <Modal
+                open={analysisModalOpen}
+                onCancel={() => setAnalysisModalOpen(false)}
+                footer={null}
+                title="Customer Lifetime Value Analysis"
+                width={700}
+            >
+                {!analysis ? (
+                    <Spin />
+                ) : (
+                    <>
+                        {(() => {
+                            // لو بتحب تحتفظ بالـ helpers محلياً ممكن تحطهم هنا أو برا الـ render
+                            const currencyFormatter = new Intl.NumberFormat("en-EG", {
+                                style: "currency",
+                                currency: "EGP",
+                                maximumFractionDigits: 2,
+                            });
+                            const safeNumber = (v) => (v === null || v === undefined ? 0 : v);
+                            const safeDate = (d) => (d ? new Date(d).toLocaleString() : "N/A");
+
+                            return (
+                                <div className="space-y-4">
+                                    <Card>
+                                        <Space wrap size="large" align="center">
+                                            <div>
+                                                <div style={{ fontSize: 12, color: "#666" }}>Total Orders</div>
+                                                <div style={{ fontSize: 18, fontWeight: 600 }}>{analysis.totalOrders}</div>
+                                            </div>
+
+                                            <div>
+                                                <div style={{ fontSize: 12, color: "#666" }}>Total Spent</div>
+                                                <div style={{ fontSize: 18, fontWeight: 600 }}>
+                                                    {currencyFormatter.format(safeNumber(analysis.totalSpent))}
+                                                </div>
+                                            </div>
+
+                                            <div>
+                                                <div style={{ fontSize: 12, color: "#666" }}>Average Order Value</div>
+                                                <div style={{ fontSize: 18, fontWeight: 600 }}>
+                                                    {currencyFormatter.format(safeNumber(analysis.averageOrderValue))}
+                                                </div>
+                                            </div>
+
+                                            <div>
+                                                <div style={{ fontSize: 12, color: "#666" }}>Used Coupons</div>
+                                                <div style={{ fontSize: 18, fontWeight: 600 }}>
+                                                    {analysis.totalUsedCoupons ?? 0}
+                                                </div>
+                                            </div>
+
+                                            <div>
+                                                <div style={{ fontSize: 12, color: "#666" }}>Canceled Orders</div>
+                                                <div style={{ fontSize: 18, fontWeight: 600 }}>
+                                                    {analysis.totalCanceldOrders ?? 0}
+                                                </div>
+                                            </div>
+                                        </Space>
+                                    </Card>
+
+                                    <Card>
+                                        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+                                            <div>
+                                                <b>First Order Date:</b>
+                                                <div style={{ color: "#666" }}>{safeDate(analysis.firstOrderDate)}</div>
+                                            </div>
+
+                                            <div>
+                                                <b>Last Order Date:</b>
+                                                <div style={{ color: "#666" }}>{safeDate(analysis.lastOrderDate)}</div>
+                                            </div>
+
+                                            <div>
+                                                <b>Summary</b>
+                                                <div style={{ color: "#666", marginTop: 6 }}>
+                                                    This customer placed <b>{safeNumber(analysis.totalOrders)}</b> orders and spent a total of{" "}
+                                                    <b>{currencyFormatter.format(safeNumber(analysis.totalSpent))}</b>.
+                                                </div>
+                                            </div>
+
+                                            <div>
+                                                <b>Notes</b>
+                                                <div style={{ color: "#666", marginTop: 6 }}>
+                                                    Average order value is <b>{currencyFormatter.format(safeNumber(analysis.averageOrderValue))}</b>.
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </Card>
+                                </div>
+                            );
+                        })()}
+                    </>
                 )}
             </Modal>
 
