@@ -135,7 +135,7 @@ const OrdersTab = () => {
         <div className="space-y-6">
             <Row gutter={[16, 16]}>
                 {overviewCards.map((c, idx) => (
-                    <Col xs={24} sm={12} md={4} key={c.title}>
+                    <Col xs={24} sm={12} md={6} lg={4} key={c.title}>
                         <StatCard {...c} formatter={v => Math.round(v)} />
                     </Col>
                 ))}

@@ -15,6 +15,7 @@ import SuperAdminDashboard from "./SuperAdminDashboard";
 import ExportSummaryPage from "./ExportSummaryPage";
 import CouponsStatsMock from "./Coupons";
 import LowStockProducts from "./LowStockProducts";
+import SalesReport from "./SalesReport";
 
 /*
   Simple Tabs layout.
@@ -36,6 +37,8 @@ export default function Dashboard() {
         // { key: "SuperAdmin", label: "SuperAdmin" }, 
         { key: "analytics", label: "Analytics" },
         { key: "lowStock", label: "Low Stock" },
+        { key: "report", label: "Report" },
+
 
         // { key: "top", label: "Top Performers" }     
     ];
@@ -75,6 +78,14 @@ export default function Dashboard() {
                     activeTab === "lowStock" && (
                         <Suspense fallback={<div className="flex justify-center py-20"><PulseLoader /></div>}>
                             <LowStockProducts />
+                        </Suspense>
+                    )
+                }
+
+                {
+                    activeTab === "report" && (
+                        <Suspense fallback={<div className="flex justify-center py-20"><PulseLoader /></div>}>
+                            <SalesReport />
                         </Suspense>
                     )
                 }

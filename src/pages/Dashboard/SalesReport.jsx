@@ -1,0 +1,300 @@
+import { useState, useEffect } from "react";
+import axios from "axios";
+import {
+    Card,
+    DatePicker,
+    Select,
+    Button,
+    Space,
+    Table,
+    Tag,
+    message,
+} from "antd";
+import { Search } from "lucide-react";
+import dayjs from "dayjs";
+import {
+    BarChart,
+    Bar,
+    LineChart,
+    Line,
+    XAxis,
+    YAxis,
+    Tooltip,
+    CartesianGrid,
+    ResponsiveContainer
+} from "recharts";
+
+
+const { RangePicker } = DatePicker;
+
+export default function SalesReport() {
+    const [loading, setLoading] = useState(false);
+    const [report, setReport] = useState(null);
+
+    // params
+    const [dates, setDates] = useState([]);
+    const [type, setType] = useState("");
+
+    // set default range = last month → today
+    useEffect(() => {
+        const today = dayjs();
+        const lastMonth = dayjs().subtract(1, "month");
+        const defaultRange = [lastMonth, today];
+
+        setDates(defaultRange);
+
+        // Fetch immediately only for date range
+        fetchData(defaultRange, "");
+    }, []);
+
+    const fetchData = async (customDates, customType) => {
+        const d = customDates || dates;
+        const t = customType ?? type;
+
+        if (!d || d.length !== 2) {
+            message.error("اختر التاريخ الأول والتاني يا باشا");
+            return;
+        }
+
+        let startDate = d[0].format("D-M-YYYY");
+        let endDate = d[1].format("D-M-YYYY");
+
+        try {
+            setLoading(true);
+
+            const res = await axios.get(
+                "https://api.elrayan.acwad.tech/api/v1/orders/sales-report",
+                {
+                    params: { startDate, endDate, type: t },
+                }
+            );
+
+            setReport(res.data);
+        } catch (e) {
+            console.log(e);
+            message.error("Error fetching sales report");
+        }
+
+        setLoading(false);
+    };
+
+    const topProductsColumns = [
+        { title: "Product", dataIndex: "name" },
+        {
+            title: "Sold",
+            dataIndex: "sold",
+            sorter: (a, b) => a.sold - b.sold,
+        },
+        {
+            title: "Revenue",
+            dataIndex: "revenue",
+            sorter: (a, b) => a.revenue - b.revenue,
+        },
+    ];
+
+    return (
+        <div className="space-y-5">
+
+            {/* Filters */}
+            <Card className="p-4">
+                <Space wrap size="large">
+
+                    <div>
+                        <div style={{ fontSize: 12, color: "#666" }}>Date Range</div>
+                        <RangePicker
+                            format="DD-MM-YYYY"
+                            value={dates}
+                            onChange={(v) => setDates(v)}
+                            style={{ width: 250 }}
+                        />
+                    </div>
+
+                    <div>
+                        <div style={{ fontSize: 12, color: "#666" }}>Report Type</div>
+                        <Select
+                            style={{ width: 180 }}
+                            value={type || undefined}
+                            onChange={setType}
+                            placeholder="Select type"
+                            options={[
+                                { value: "daily", label: "Daily" },
+                                { value: "weekly", label: "Weekly" },
+                                { value: "monthly", label: "Monthly" },
+                                { value: "yearly", label: "Yearly" },
+                            ]}
+                        />
+                    </div>
+
+                    <Button
+                        type="primary"
+                        icon={<Search size={16} />}
+                        loading={loading}
+                        onClick={() => fetchData()}
+                        style={{ marginTop: 20 }}
+                    >
+                        Apply
+                    </Button>
+
+                </Space>
+            </Card>
+
+            {/* Show nothing until data loaded */}
+            {!report ? null : (
+                <>
+
+                    {/* Summary */}
+                    <Card title="Summary">
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+
+                            <Card>
+                                <b>Total Revenue</b>
+                                <div style={{ fontSize: 20, fontWeight: 600 }}>
+                                    {report.summary.totalRevenue}
+                                </div>
+                            </Card>
+
+                            <Card>
+                                <b>Total Orders</b>
+                                <div style={{ fontSize: 20, fontWeight: 600 }}>
+                                    {report.summary.totalOrders}
+                                </div>
+                            </Card>
+
+                            <Card>
+                                <b>Average Order Value</b>
+                                <div style={{ fontSize: 20, fontWeight: 600 }}>
+                                    {report.summary.averageOrderValue}
+                                </div>
+                            </Card>
+
+                            <Card>
+                                <b>Total Items Sold</b>
+                                <div style={{ fontSize: 20, fontWeight: 600 }}>
+                                    {report.summary.totalItemsSold}
+                                </div>
+                            </Card>
+
+                            <Card>
+                                <b>Total Discount Given</b>
+                                <div style={{ fontSize: 20, fontWeight: 600 }}>
+                                    {report.summary.totalDiscountGiven}
+                                </div>
+                            </Card>
+
+                            <Card>
+                                <b>Total Shipping Revenue</b>
+                                <div style={{ fontSize: 20, fontWeight: 600 }}>
+                                    {report.summary.totalShippingRevenue}
+                                </div>
+                            </Card>
+
+                        </div>
+                    </Card>
+
+                    {/* Chart Section */}
+                    <Card title="Revenue Chart (Preview)">
+                        {report.topProducts?.length === 0 ? (
+                            <Tag color="red">No data available for chart</Tag>
+                        ) : (
+                            <div style={{ width: "100%", height: 300 }}>
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <BarChart data={report.topProducts}>
+                                        <CartesianGrid strokeDasharray="3 3" />
+                                        <XAxis dataKey="name" tick={{ fontSize: 12 }} />
+                                        <YAxis />
+                                        <Tooltip />
+                                        <Bar dataKey="sold" fill="#3b82f6" />
+                                    </BarChart>
+                                </ResponsiveContainer>
+                            </div>
+                        )}
+                    </Card>
+
+
+                    {/* Breakdown */}
+                    <Card title="Breakdown">
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+
+                            <Card>
+                                <b>Completed Orders</b>
+                                <div style={{ fontSize: 20 }}>{report.breakdown.completedOrders}</div>
+                            </Card>
+
+                            <Card>
+                                <b>Pending Orders</b>
+                                <div style={{ fontSize: 20 }}>{report.breakdown.pendingOrders}</div>
+                            </Card>
+
+                            <Card>
+                                <b>Cancelled Orders</b>
+                                <div style={{ fontSize: 20 }}>{report.breakdown.cancelledOrders}</div>
+                            </Card>
+
+                            <Card>
+                                <b>Refunded Orders</b>
+                                <div style={{ fontSize: 20 }}>{report.breakdown.refundedOrders}</div>
+                            </Card>
+
+                            <Card>
+                                <b>Completion Rate</b>
+                                <div style={{ fontSize: 20 }}>
+                                    {report.breakdown.completionRate}%
+                                </div>
+                            </Card>
+
+                            <Card>
+                                <b>Cancellation Rate</b>
+                                <div style={{ fontSize: 20 }}>
+                                    {report.breakdown.cancellationRate}%
+                                </div>
+                            </Card>
+
+                        </div>
+                    </Card>
+
+                    {/* Customer Insights */}
+                    <Card title="Customer Insights">
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+
+                            <Card>
+                                <b>Unique Customers</b>
+                                <div style={{ fontSize: 20 }}>{report.customerInsights.uniqueCustomers}</div>
+                            </Card>
+
+                            <Card>
+                                <b>Returning Customers</b>
+                                <div style={{ fontSize: 20 }}>{report.customerInsights.returningCustomers}</div>
+                            </Card>
+
+                            <Card>
+                                <b>Avg Orders Per Customer</b>
+                                <div style={{ fontSize: 20 }}>
+                                    {report.customerInsights.averageOrdersPerCustomer}
+                                </div>
+                            </Card>
+
+                        </div>
+                    </Card>
+
+                    {/* Top Products */}
+                    <Card title="Top Products">
+                        {(!report.topProducts || report.topProducts.length === 0) ? (
+                            <Tag color="red">No top products found</Tag>
+                        ) : (
+                            <div style={{ overflowX: "auto" }}>
+                                <Table
+                                    columns={topProductsColumns}
+                                    dataSource={report.topProducts}
+                                    rowKey={(r) => r.id}
+                                    pagination={false}
+                                />
+                            </div>
+                        )}
+                    </Card>
+
+                </>
+            )}
+
+        </div>
+    );
+}
