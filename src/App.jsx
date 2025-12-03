@@ -1,10 +1,9 @@
 import { Routes, Route, useLocation } from 'react-router-dom';
-import { Home, Package, ShoppingCart, Users, Settings, LandPlot, Puzzle, ChartColumnStacked, Store, ChartBar, Wallet, Gift, } from 'lucide-react';
+import { Home, Package, ShoppingCart, Users, Settings, LandPlot, Puzzle, ChartColumnStacked, Store, ChartBar, Wallet, Gift, Layout, LayoutGrid, } from 'lucide-react';
 import { DashboardLayout } from './Components/DashboardLayout';
 import Dashboard from './pages/Dashboard/Dashboard';
 import Login from './pages/Auth/Login';
 import Banners from './pages/Banners/Banners';
-// import RequireAuth from "./pages/Auth/RequireAuth"
 import { FaInfoCircle } from "react-icons/fa";
 import Coupons from './pages/Coupons/Coupons';
 import Orders from './pages/Orders/Orders';

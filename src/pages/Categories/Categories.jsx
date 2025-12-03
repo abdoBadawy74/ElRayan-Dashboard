@@ -24,7 +24,7 @@ export default function Categories() {
 
     const headers = {
         Authorization: `Bearer ${token}`,
-        "Accept-Language": "en",
+        "lang": "en",
     };
 
     // ============================
@@ -82,16 +82,28 @@ export default function Categories() {
     // ============================
     // Show Subcategories
     // ============================
-    const showSub = (list) => {
-        if (!list || list.length === 0) {
-            setSubList([]);
-            toast.warning("No subcategories available");
+    const showSub = async (catId) => {
+        try {
+            const res = await axios.get(
+                `https://api.elrayan.acwad.tech/api/v1/sub-categories?main_category=${catId}`,
+                { headers }
+            );
 
-            return;
+            const list = res.data.data;
+
+            if (!list || list.length === 0) {
+                toast.warning("No subcategories available");
+                return; // ❌ متفتحش الموديل
+            }
+
+            setSubList(list);
+            setSelectedCat(catId); // مهم
+            setSubOpen(true);
+        } catch (e) {
+            console.log(e);
         }
-        setSubList(list);
-        setSubOpen(true);
     };
+
 
     // ============================
     // delete
@@ -170,12 +182,13 @@ export default function Categories() {
         },
         {
             title: "Subcategories",
-            dataIndex: "subCategories",
-            render: (subs) =>
-                <Button size="small" icon={<Eye size={14} />} onClick={() => showSub(subs)}>
-                    View ({subs.length})
+            dataIndex: "id",
+            render: (catId) =>
+                <Button size="small" icon={<Eye size={14} />} onClick={() => showSub(catId)}>
+                    Manage
                 </Button>
-        },
+        }
+        ,
         {
             title: "Actions",
             render: (_, row) => (
@@ -191,7 +204,94 @@ export default function Categories() {
         }
     ];
 
-    if (loading) return <Spin size="large" />;
+
+
+
+    const [subForm] = Form.useForm();
+    const [subEditMode, setSubEditMode] = useState(false);
+    const [subModal, setSubModal] = useState(false);
+    const [selectedSub, setSelectedSub] = useState(null);
+    const openAddSub = () => {
+        setSubEditMode(false);
+        setSelectedSub(null);
+        subForm.resetFields();
+        setSubModal(true);
+    };
+
+    const openEditSub = (sub) => {
+        setSubEditMode(true);
+        setSelectedSub(sub);
+
+        subForm.setFieldsValue({
+            name_en: sub.name.en,
+            name_ar: sub.name.ar,
+        });
+
+        setSubModal(true);
+    };
+
+    const submitSub = async (values) => {
+        try {
+            const fd = new FormData();
+            fd.append("name[en]", values.name_en);
+            fd.append("name[ar]", values.name_ar);
+            fd.append("main_category_id", selectedCat);
+
+            let file;
+            if (values && values.icon) {
+                // Antd Upload file object usually has originFileObj
+                if (values.icon.originFileObj) {
+                    file = values.icon.originFileObj;
+                } else if (values.icon.file && values.icon.file.originFileObj) {
+                    file = values.icon.file.originFileObj;
+                } else if (values.icon instanceof File) {
+                    file = values.icon;
+                } else {
+                    // fallback: sometimes the value is already the file-like object
+                    file = values.icon;
+                }
+            }
+
+            if (file) {
+                fd.append("icon", file);
+            }
+
+            if (subEditMode) {
+                await axios.patch(
+                    `https://api.elrayan.acwad.tech/api/v1/sub-categories/${selectedSub.id}`,
+                    fd,
+                    { headers }
+                );
+            } else {
+                await axios.post(
+                    `https://api.elrayan.acwad.tech/api/v1/sub-categories`,
+                    fd,
+                    { headers }
+                );
+            }
+
+            setSubModal(false);
+            showSub(selectedCat);
+
+        } catch (e) {
+            console.log(e);
+        }
+    };
+
+    const deleteSub = async (id) => {
+        try {
+            await axios.delete(
+                `https://api.elrayan.acwad.tech/api/v1/sub-categories/${id}`,
+                { headers }
+            );
+            showSub(selectedCat);
+        } catch (e) {
+            console.log(e);
+        }
+    };
+    if (loading) return <div className="w-full h-[500px] flex justify-center items-center">
+        <Spin size="large" />
+    </div>
 
     return (
         <div style={{ padding: 20 }}>
@@ -242,35 +342,92 @@ export default function Categories() {
           SUBCATEGORIES MODAL
        ====================== */}
             <Modal
-                title="Subcategories"
+                title="Manage Subcategories"
                 open={subOpen}
                 onCancel={() => setSubOpen(false)}
                 footer={false}
+                width={650}
             >
-                {subList.length === 0 ? (
-                    <p>No subcategories</p>
-                ) : (
-                    subList.map((sub) => (
-                        <div
-                            key={sub.id}
-                            style={{
-                                display: "flex",
-                                alignItems: "center",
-                                gap: 10,
-                                padding: "10px 0",
-                                borderBottom: "1px solid #eee"
+                <Button
+                    type="primary"
+                    icon={<Plus size={14} />}
+                    onClick={openAddSub}
+                    style={{ marginBottom: 15 }}
+                >
+                    Add Subcategory
+                </Button>
+
+                <Table
+                    dataSource={subList}
+                    rowKey="id"
+                    columns={[
+                        {
+                            title: "Icon",
+                            dataIndex: "icon",
+                            render: (i) => <img src={i} width={40} style={{ borderRadius: 6 }} />
+                        },
+                        {
+                            title: "EN",
+                            dataIndex: "name",
+                            render: n => n.en
+                        },
+                        {
+                            title: "AR",
+                            dataIndex: "name",
+                            render: n => n.ar
+                        },
+                        {
+                            title: "Actions",
+                            render: (_, row) => (
+                                <div style={{ display: "flex", gap: 8 }}>
+                                    <Button size="small" onClick={() => openEditSub(row)} icon={<Edit3 size={13} />}>
+                                        Edit
+                                    </Button>
+                                    <Popconfirm
+                                        title="Delete this subcategory?"
+                                        onConfirm={() => deleteSub(row.id)}
+                                    >
+                                        <Button danger size="small" icon={<Trash2 size={13} />}>Delete</Button>
+                                    </Popconfirm>
+                                </div>
+                            )
+                        }
+                    ]}
+                />
+            </Modal>
+            {/* ======================
+          ADD / EDIT SUBCATEGORY MODAL
+       ====================== */}
+            <Modal
+                title={subEditMode ? "Edit Subcategory" : "Add Subcategory"}
+                open={subModal}
+                onCancel={() => setSubModal(false)}
+                onOk={() => subForm.submit()}
+            >
+                <Form layout="vertical" form={subForm} onFinish={submitSub}>
+                    <Form.Item name="name_en" label="Name (EN)" rules={[{ required: true }]}>
+                        <Input />
+                    </Form.Item>
+
+                    <Form.Item name="name_ar" label="Name (AR)" rules={[{ required: true }]}>
+                        <Input />
+                    </Form.Item>
+
+                    <Form.Item name="icon" label="Icon (optional)">
+                        <Upload
+                            beforeUpload={() => false}
+                            maxCount={1}
+                            listType="picture"
+                            onChange={({ fileList }) => {
+                                subForm.setFieldsValue({ icon: fileList[0] });
                             }}
                         >
-                            <img src={sub.icon} width={35} style={{ borderRadius: 6 }} />
-                            <div>
-                                <strong>{sub.name.en}</strong>
-                                <br />
-                                <span style={{ color: "#888" }}>{sub.name.ar}</span>
-                            </div>
-                        </div>
-                    ))
-                )}
+                            <Button icon={<UploadIcon size={16} />}>Upload Icon</Button>
+                        </Upload>
+                    </Form.Item>
+                </Form>
             </Modal>
+
         </div>
     );
 }
