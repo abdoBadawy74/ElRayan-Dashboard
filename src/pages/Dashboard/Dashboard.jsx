@@ -33,7 +33,7 @@ export default function Dashboard() {
         // { key: "shipping", label: "Shipping" },        // ✅ shipping/stats
         // { key: "trends", label: "Trends" },            // ✅ trends + geographic/stats
         // { key: "SuperAdmin", label: "SuperAdmin" },    // ✅ super-admin 
-        // { key: "analytics", label: "Analytics" },      // ✅ addons/stats + export/summary + payments/analytics + customer/lifetime-value
+        { key: "analytics", label: "Analytics" },      // ✅ addons/stats + export/summary + payments/analytics + customer/lifetime-value
         // { key: "top", label: "Top Performers" }        // ✅ top-performers
     ];
 
