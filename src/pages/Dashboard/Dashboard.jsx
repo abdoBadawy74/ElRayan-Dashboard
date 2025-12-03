@@ -14,6 +14,7 @@ import TrendsAndGeographicTab from "./TrendsAndGeographicTab";
 import SuperAdminDashboard from "./SuperAdminDashboard";
 import ExportSummaryPage from "./ExportSummaryPage";
 import CouponsStatsMock from "./Coupons";
+import LowStockProducts from "./LowStockProducts";
 
 /*
   Simple Tabs layout.
@@ -23,18 +24,20 @@ export default function Dashboard() {
     const [activeTab, setActiveTab] = useState("orders");
 
     const tabs = [
-        // { key: "overview", label: "Overview" },        // ✅ overview/quick + recent-activity + revenue/timeline
-        // { key: "revenue", label: "Revenue" },          // ✅ revenue/breakdown + revenue/timeline
-        { key: "orders", label: "Orders" },            // ✅ orders/status-breakdown
-        // { key: "users", label: "Users" },              // ✅ users/statistics 
-        // { key: "vendors", label: "Vendors" },          // ✅ vendors/performance
-        // { key: "products", label: "Products" },        // ✅ products/performance
-        // { key: "coupons", label: "Coupons" },          // ✅ coupons/usage
-        // { key: "shipping", label: "Shipping" },        // ✅ shipping/stats
-        // { key: "trends", label: "Trends" },            // ✅ trends + geographic/stats
-        // { key: "SuperAdmin", label: "SuperAdmin" },    // ✅ super-admin 
-        { key: "analytics", label: "Analytics" },      // ✅ addons/stats + export/summary + payments/analytics + customer/lifetime-value
-        // { key: "top", label: "Top Performers" }        // ✅ top-performers
+        // { key: "overview", label: "Overview" },        
+        // { key: "revenue", label: "Revenue" },          
+        { key: "orders", label: "Orders" },
+        // { key: "users", label: "Users" },           
+        // { key: "vendors", label: "Vendors" },       
+        // { key: "products", label: "Products" },     
+        // { key: "coupons", label: "Coupons" },       
+        // { key: "shipping", label: "Shipping" },     
+        // { key: "trends", label: "Trends" },         
+        // { key: "SuperAdmin", label: "SuperAdmin" }, 
+        { key: "analytics", label: "Analytics" },
+        { key: "lowStock", label: "Low Stock" },
+
+        // { key: "top", label: "Top Performers" }     
     ];
 
 
@@ -67,6 +70,14 @@ export default function Dashboard() {
                         <RevenueTimeline />
                     </Suspense>
                 )}
+
+                {
+                    activeTab === "lowStock" && (
+                        <Suspense fallback={<div className="flex justify-center py-20"><PulseLoader /></div>}>
+                            <LowStockProducts />
+                        </Suspense>
+                    )
+                }
 
                 {activeTab === "top" && (
                     <Suspense fallback={<div className="flex justify-center py-20"><PulseLoader /></div>}>
