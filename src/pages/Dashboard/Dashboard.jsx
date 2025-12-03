@@ -20,21 +20,21 @@ import CouponsStatsMock from "./Coupons";
   We'll lazy-load other sections later (they can be separate components).
 */
 export default function Dashboard() {
-    const [activeTab, setActiveTab] = useState("overview");
+    const [activeTab, setActiveTab] = useState("orders");
 
     const tabs = [
-        { key: "overview", label: "Overview" },        // ✅ overview/quick + recent-activity + revenue/timeline
-        { key: "revenue", label: "Revenue" },          // ✅ revenue/breakdown + revenue/timeline
+        // { key: "overview", label: "Overview" },        // ✅ overview/quick + recent-activity + revenue/timeline
+        // { key: "revenue", label: "Revenue" },          // ✅ revenue/breakdown + revenue/timeline
         { key: "orders", label: "Orders" },            // ✅ orders/status-breakdown
-        { key: "users", label: "Users" },              // ✅ users/statistics 
-        { key: "vendors", label: "Vendors" },          // ✅ vendors/performance
-        { key: "products", label: "Products" },        // ✅ products/performance
-        { key: "coupons", label: "Coupons" },          // ✅ coupons/usage
-        { key: "shipping", label: "Shipping" },        // ✅ shipping/stats
-        { key: "trends", label: "Trends" },            // ✅ trends + geographic/stats
-        { key: "SuperAdmin", label: "SuperAdmin" },    // ✅ super-admin 
-        { key: "analytics", label: "Analytics" },      // ✅ addons/stats + export/summary + payments/analytics + customer/lifetime-value
-        { key: "top", label: "Top Performers" }        // ✅ top-performers
+        // { key: "users", label: "Users" },              // ✅ users/statistics 
+        // { key: "vendors", label: "Vendors" },          // ✅ vendors/performance
+        // { key: "products", label: "Products" },        // ✅ products/performance
+        // { key: "coupons", label: "Coupons" },          // ✅ coupons/usage
+        // { key: "shipping", label: "Shipping" },        // ✅ shipping/stats
+        // { key: "trends", label: "Trends" },            // ✅ trends + geographic/stats
+        // { key: "SuperAdmin", label: "SuperAdmin" },    // ✅ super-admin 
+        // { key: "analytics", label: "Analytics" },      // ✅ addons/stats + export/summary + payments/analytics + customer/lifetime-value
+        // { key: "top", label: "Top Performers" }        // ✅ top-performers
     ];
 
 
@@ -49,7 +49,7 @@ export default function Dashboard() {
                         key={t.key}
                         onClick={() => setActiveTab(t.key)}
                         className={`px-4 py-2 rounded-lg font-medium ${activeTab === t.key
-                            ? "bg-blue-600 text-white shadow"
+                            ? "bg-red-600 text-white shadow"
                             : "bg-white border text-gray-700"
                             }`}
                     >
