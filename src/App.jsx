@@ -37,9 +37,10 @@ function App() {
     { label: 'Zones', icon: LandPlot, path: '/zones' },
     { label: 'Coupons', icon: Puzzle, path: '/coupons' },
     { label: 'Products', icon: Package, path: '/products' },
+    { label: 'Categories', icon: ChartColumnStacked, path: '/categories' },
+    
     { label: 'Orders', icon: ShoppingCart, path: '/orders' },
     { label: 'Rewards', icon: Gift, path: '/rewards' },
-    // { label: 'Categories', icon: ChartColumnStacked, path: '/categories' },
     // { label: 'Settings', icon: Settings, path: '/settings' },
     // { label: 'Vendors', icon: Store, path: '/vendors' },
     // { label: 'Vendors Statistics', icon: ChartBar, path: '/vendors/statistics' },
@@ -83,7 +84,7 @@ function App() {
                   <Route path="/products/:id" element={<EditProduct />} />
                   <Route path="/products/add" element={<AddProduct />} />
                   <Route path="/rewards" element={<Rewards />} />
-                  {/* <Route path="/categories" element={<Categories />} /> */}
+                  <Route path="/categories" element={<Categories />} />
                   {/* <Route path="/settings" element={<SettingsPage />} /> */}
                   {/* <Route path="/vendors" element={<Vendors />} />
                   <Route path="/vendors/overview" element={<VendorOverview />} /> 

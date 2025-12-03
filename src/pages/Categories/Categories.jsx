@@ -1,245 +1,275 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
+import { Table, Button, Modal, Form, Input, Upload, Popconfirm, Spin, Tag, message } from "antd";
+import { Plus, Edit3, Trash2, Upload as UploadIcon, Eye } from "lucide-react";
+import axios from "axios";
 import { toast, ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
-import {
-    Row,
-    Col,
-    Card,
-    Button,
-    Modal,
-    Input,
-    Upload,
-    Image,
-    Space,
-    message,
-    Spin,
-} from "antd";
-import { UploadOutlined, PlusOutlined, EditOutlined, DeleteOutlined } from "@ant-design/icons";
-
-const API_URL = "https://api.maghni.acwad.tech/api/v1/public-category";
 
 export default function Categories() {
+
     const [categories, setCategories] = useState([]);
     const [loading, setLoading] = useState(true);
 
-    // Add/Edit Modal
-    const [showModal, setShowModal] = useState(false);
+    // main modal (add/edit)
+    const [modalOpen, setModalOpen] = useState(false);
     const [editMode, setEditMode] = useState(false);
-    const [formData, setFormData] = useState({ en: "", ar: "", image: null });
-    const [selectedId, setSelectedId] = useState(null);
+    const [selectedCat, setSelectedCat] = useState(null);
+
+    // subcategories modal
+    const [subOpen, setSubOpen] = useState(false);
+    const [subList, setSubList] = useState([]);
+
+    const [form] = Form.useForm();
 
     const token = localStorage.getItem("token");
 
+    const headers = {
+        Authorization: `Bearer ${token}`,
+        "Accept-Language": "en",
+    };
+
+    // ============================
     // Fetch categories
+    // ============================
     const fetchCategories = async () => {
-        setLoading(true);
         try {
-            const res = await fetch(API_URL);
-            const data = await res.json();
-            setCategories(data.data || []);
-        } catch (err) {
-            toast.error("⚠️ Failed to load categories");
+            const res = await axios.get("https://api.elrayan.acwad.tech/api/v1/category", { headers });
+            setCategories(res.data.data);
+        } catch (e) {
+            console.log(e);
+        } finally {
+            setLoading(false);
         }
-        setLoading(false);
     };
 
     useEffect(() => {
         fetchCategories();
     }, []);
 
-    // Handle Add/Edit submit
-    const handleSave = async () => {
-        if (!formData.en || !formData.ar || (!formData.image && !editMode)) {
-            toast.error("Please fill all fields (EN, AR, and Icon)");
-            return;
-        }
+    // ============================
+    // Add modal
+    // ============================
+    const openAdd = () => {
+        setEditMode(false);
+        setSelectedCat(null);
+        form.resetFields();
+        setModalOpen(true);
+    };
 
-        const body = new FormData();
-        body.append("name[en]", formData.en);
-        body.append("name[ar]", formData.ar);
-        if (formData.image && typeof formData.image !== "string") {
-            body.append("icon", formData.image);
-        }
-
+    // ============================
+    // Edit modal
+    // ============================
+    const openEdit = async (catId) => {
         try {
-            const res = await fetch(editMode ? `${API_URL}/${selectedId}` : API_URL, {
-                method: editMode ? "PATCH" : "POST",
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                },
-                body,
+            setEditMode(true);
+
+            const res = await axios.get(`https://api.elrayan.acwad.tech/api/v1/category/${catId}`, { headers });
+            const c = res.data.data;
+
+            setSelectedCat(c);
+
+            form.setFieldsValue({
+                name_en: c.name.en,
+                name_ar: c.name.ar,
             });
 
-            const data = await res.json();
-            if (res.ok && data.success) {
-                toast.success(editMode ? "✅ Category updated" : "✅ Category added");
-                setShowModal(false);
-                setFormData({ en: "", ar: "", image: null });
-                fetchCategories();
-            } else {
-                toast.error("⚠️ " + (data.message || "Operation failed"));
-            }
-        } catch (err) {
-            toast.error("❌ Error saving category");
+            setModalOpen(true);
+
+        } catch (e) {
+            console.log(e);
         }
     };
 
-    // Handle delete
-    const handleDelete = async (id) => {
-        Modal.confirm({
-            title: "Are you sure you want to delete this category?",
-            okText: "Yes",
-            cancelText: "No",
-            onOk: async () => {
-                try {
-                    const res = await fetch(`${API_URL}/${id}`, {
-                        method: "DELETE",
-                        headers: { Authorization: `Bearer ${token}` },
-                    });
-                    const data = await res.json();
-                    if (res.ok && data.success) {
-                        toast.success("🗑️ Category deleted");
-                        fetchCategories();
-                    } else {
-                        toast.error("⚠️ " + (data.message || "Failed to delete"));
-                    }
-                } catch (err) {
-                    toast.error("❌ Error deleting category");
-                }
-            },
-        });
+    // ============================
+    // Show Subcategories
+    // ============================
+    const showSub = (list) => {
+        if (!list || list.length === 0) {
+            setSubList([]);
+            toast.warning("No subcategories available");
+
+            return;
+        }
+        setSubList(list);
+        setSubOpen(true);
     };
 
-    // Handle Image Removal
-    const removeSelectedImage = () => {
-        setFormData({ ...formData, image: null });
+    // ============================
+    // delete
+    // ============================
+    const deleteCat = async (id) => {
+        try {
+            await axios.delete(`https://api.elrayan.acwad.tech/api/v1/category/${id}`, { headers });
+            fetchCategories();
+        } catch (e) {
+            console.log(e);
+        }
     };
+
+    // ============================
+    // SUBMIT FORM (ADD + EDIT)
+    // ============================
+    const onSubmit = async (values) => {
+        try {
+            const fd = new FormData();
+            fd.append("name[en]", values.name_en);
+            fd.append("name[ar]", values.name_ar);
+
+            // icon can be undefined, an Upload file object, or a raw File.
+            let file;
+            if (values && values.icon) {
+                // Antd Upload file object usually has originFileObj
+                if (values.icon.originFileObj) {
+                    file = values.icon.originFileObj;
+                } else if (values.icon.file && values.icon.file.originFileObj) {
+                    file = values.icon.file.originFileObj;
+                } else if (values.icon instanceof File) {
+                    file = values.icon;
+                } else {
+                    // fallback: sometimes the value is already the file-like object
+                    file = values.icon;
+                }
+            }
+
+            if (file) {
+                fd.append("icon", file);
+            }
+
+            console.log(fd.get("name[en]"));
+
+            if (editMode) {
+                await axios.patch(`https://api.elrayan.acwad.tech/api/v1/category/${selectedCat.id}`, fd, { headers });
+            } else {
+                await axios.post("https://api.elrayan.acwad.tech/api/v1/category", fd, { headers });
+            }
+
+            setModalOpen(false);
+            fetchCategories();
+
+        } catch (e) {
+            console.log(e);
+        }
+    };
+    // ============================
+    // TABLE COLUMNS
+    // ============================
+    const columns = [
+        {
+            title: "Icon",
+            dataIndex: "icon",
+            render: (icon) => <img src={icon} width={45} height={45} style={{ borderRadius: 8 }} />
+        },
+        {
+            title: "Name (EN)",
+            dataIndex: "name",
+            render: (n) => n.en
+        },
+        {
+            title: "Name (AR)",
+            dataIndex: "name",
+            render: (n) => n.ar
+        },
+        {
+            title: "Subcategories",
+            dataIndex: "subCategories",
+            render: (subs) =>
+                <Button size="small" icon={<Eye size={14} />} onClick={() => showSub(subs)}>
+                    View ({subs.length})
+                </Button>
+        },
+        {
+            title: "Actions",
+            render: (_, row) => (
+                <div style={{ display: "flex", gap: 10 }}>
+                    <Button type="primary" icon={<Edit3 size={14} />} onClick={() => openEdit(row.id)}>
+                        Edit
+                    </Button>
+                    <Popconfirm title="Delete this category?" onConfirm={() => deleteCat(row.id)}>
+                        <Button danger icon={<Trash2 size={14} />}>Delete</Button>
+                    </Popconfirm>
+                </div>
+            )
+        }
+    ];
+
+    if (loading) return <Spin size="large" />;
 
     return (
-        <div className="p-6 bg-gray-100 min-h-screen">
-            <ToastContainer />
-
-            <Space style={{ marginBottom: 24, width: "100%" }} align="start">
-                <h1 className="text-3xl font-extrabold text-gray-800">📂 Categories</h1>
-                <Button
-                    type="primary"
-                    icon={<PlusOutlined />}
-                    onClick={() => {
-                        setEditMode(false);
-                        setFormData({ en: "", ar: "", image: null });
-                        setShowModal(true);
-                    }}
-                >
+        <div style={{ padding: 20 }}>
+            <ToastContainer theme="colored" />
+            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 20 }}>
+                <h2>Categories</h2>
+                <Button type="primary" icon={<Plus size={16} />} onClick={openAdd}>
                     Add Category
                 </Button>
-            </Space>
+            </div>
 
-            <Row gutter={[16, 16]}>
-                {loading ? (
-                    <Col span={24} style={{ textAlign: "center", padding: 50 }}>
-                        <Spin size="large" />
-                    </Col>
-                ) : (
-                    categories.map((cat) => (
-                        <Col key={cat.id} xs={24} sm={12} md={8}>
-                            <Card
-                                hoverable
-                                cover={
-                                    <Image
-                                        src={cat.icon}
-                                        alt={cat.name}
-                                        height={200}
-                                        style={{ objectFit: "cover", margin: "0 auto", borderRadius: "50%", display: "block", width: "100%", }}
-                                    />
+            <Table columns={columns} dataSource={categories} rowKey="id" />
+
+            {/* ======================
+          ADD / EDIT MODAL
+       ====================== */}
+            <Modal
+                title={editMode ? "Edit Category" : "Add Category"}
+                open={modalOpen}
+                onOk={() => form.submit()}
+                onCancel={() => setModalOpen(false)}
+            >
+                <Form form={form} layout="vertical" onFinish={onSubmit}>
+                    <Form.Item name="name_en" label="Name (EN)" rules={[{ required: true }]}>
+                        <Input placeholder="name in English" />
+                    </Form.Item>
+
+                    <Form.Item name="name_ar" label="Name (AR)" rules={[{ required: true }]}>
+                        <Input placeholder="name in Arabic" />
+                    </Form.Item>
+
+                    <Form.Item name="icon" label="Icon">
+                        <Upload beforeUpload={() => false} maxCount={1} listType="picture"
+                            onChange={({ fileList }) => {
+                                if (fileList.length > 1) {
+                                    fileList = fileList.slice(-1);
                                 }
-                                actions={[
-                                    <EditOutlined
-                                        key="edit"
-                                        onClick={() => {
-                                            setEditMode(true);
-                                            setSelectedId(cat.id);
-                                            setFormData({ en: cat.name, ar: cat.name, image: cat.icon });
-                                            setShowModal(true);
-                                        }}
-                                    />,
-                                    <DeleteOutlined key="delete" onClick={() => handleDelete(cat.id)} />,
-                                ]}
-                            >
-                                <Card.Meta
-                                    title={cat.name}
-                                    description={cat.name}
-                                    style={{ textAlign: "center" }}
-                                />
-                            </Card>
-                        </Col>
+                                form.setFieldsValue({ icon: fileList[0] });
+                            }}
+                        >
+                            <Button icon={<UploadIcon size={16} />}>Upload Icon</Button>
+                        </Upload>
+                    </Form.Item>
+                </Form>
+            </Modal>
+
+            {/* ======================
+          SUBCATEGORIES MODAL
+       ====================== */}
+            <Modal
+                title="Subcategories"
+                open={subOpen}
+                onCancel={() => setSubOpen(false)}
+                footer={false}
+            >
+                {subList.length === 0 ? (
+                    <p>No subcategories</p>
+                ) : (
+                    subList.map((sub) => (
+                        <div
+                            key={sub.id}
+                            style={{
+                                display: "flex",
+                                alignItems: "center",
+                                gap: 10,
+                                padding: "10px 0",
+                                borderBottom: "1px solid #eee"
+                            }}
+                        >
+                            <img src={sub.icon} width={35} style={{ borderRadius: 6 }} />
+                            <div>
+                                <strong>{sub.name.en}</strong>
+                                <br />
+                                <span style={{ color: "#888" }}>{sub.name.ar}</span>
+                            </div>
+                        </div>
                     ))
                 )}
-            </Row>
-
-            {/* Modal */}
-            <Modal
-                title={editMode ? "✏️ Edit Category" : "➕ Add Category"}
-                open={showModal}
-                onCancel={() => setShowModal(false)}
-                footer={[
-                    <Button key="cancel" onClick={() => setShowModal(false)}>
-                        Cancel
-                    </Button>,
-                    <Button key="save" type="primary" onClick={handleSave}>
-                        {editMode ? "Save Changes" : "Add Category"}
-                    </Button>,
-                ]}
-            >
-                <Input
-                    placeholder="Name (EN)"
-                    value={formData.en}
-                    onChange={(e) => setFormData({ ...formData, en: e.target.value })}
-                    style={{ marginBottom: 12 }}
-                />
-                <Input
-                    placeholder="Name (AR)"
-                    value={formData.ar}
-                    onChange={(e) => setFormData({ ...formData, ar: e.target.value })}
-                    style={{ marginBottom: 12 }}
-                />
-
-                <div style={{ marginBottom: 12 }}>
-                    {formData.image && (
-                        <div style={{ marginBottom: 8 }}>
-                            <Image
-                                src={
-                                    typeof formData.image === "string"
-                                        ? formData.image
-                                        : URL.createObjectURL(formData.image)
-                                }
-                                alt="Preview"
-                                width={120}
-                                height={120}
-                                style={{ objectFit: "cover", borderRadius: "50%" }}
-                            />
-                            {typeof formData.image !== "string" && (
-                                <Button
-                                    danger
-                                    size="small"
-                                    style={{ marginLeft: 8 }}
-                                    onClick={removeSelectedImage}
-                                >
-                                    Remove
-                                </Button>
-                            )}
-                        </div>
-                    )}
-
-                    <Upload
-                        beforeUpload={(file) => {
-                            setFormData({ ...formData, image: file });
-                            return false;
-                        }}
-                        showUploadList={false}
-                    >
-                        <Button icon={<UploadOutlined />}>Choose Image</Button>
-                    </Upload>
-                </div>
             </Modal>
         </div>
     );
