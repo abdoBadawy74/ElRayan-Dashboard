@@ -14,7 +14,7 @@ import {
     YAxis,
     CartesianGrid,
 } from "recharts";
-import { Modal, Input, Select, Checkbox, Button, DatePicker, InputNumber } from 'antd';
+import { Modal, Input, Select, Checkbox, Button, DatePicker, InputNumber, Spin } from 'antd';
 import AddCouponModal from "./AddCouponModal";
 import EditCouponModal from "./EditCouponModal";
 
@@ -34,15 +34,27 @@ export default function Coupons() {
 
     // إضافة
     const [showAdd, setShowAdd] = useState(false);
-   
+
+    // API filters
+    const [status, setStatus] = useState("active");
+    const [page, setPage] = useState(1);
+    const [limit, setLimit] = useState(10);
+    const [sortOrder, setSortOrder] = useState("DESC");
+    const [discountType, setDiscountType] = useState("");
 
     const token = localStorage.getItem("token");
 
+
+    const buildAPIUrl = () => {
+        let url = `https://api.elrayan.acwad.tech/api/v1/coupons?status=${status}&page=${page}&limit=${limit}&sortOrder=${sortOrder}`;
+        if (discountType) url += `&discountType=${discountType}`;
+        return url;
+    };
     // Fetch coupons
     const fetchCoupons = async () => {
         setLoading(true);
         try {
-            const res = await fetch(API_URL, {
+            const res = await fetch(buildAPIUrl(), {
                 headers: { Authorization: `Bearer ${token}` },
             });
             const data = await res.json();
@@ -194,8 +206,51 @@ export default function Coupons() {
                 </Button>
             </div>
 
+            {/* Filters */}
+            <div className="flex flex-wrap gap-3 mb-6 items-end">
+                <div className="flex flex-col items-start ">
+                    <span className="font-medium text-gray-700">Status</span>
+                    <Select value={status} onChange={setStatus} style={{ width: 150 }}>
+                        <Select.Option value="active">Active</Select.Option>
+                        <Select.Option value="inactive">Inactive</Select.Option>
+                    </Select>
+                </div>
+                <div className="flex flex-col items-start ">
+                    <span className="font-medium text-gray-700">Page</span>
+                    <InputNumber min={1} value={page} onChange={setPage} placeholder="Page" />
+
+                </div>
+                <div className="flex flex-col items-start ">
+                    <span className="font-medium text-gray-700">Limit</span>
+                    <InputNumber min={1} value={limit} onChange={setLimit} placeholder="Limit" />
+                </div>
+
+                <div className="flex flex-col items-start ">
+                    <span className="font-medium text-gray-700">Sort Order</span>
+                    <Select value={sortOrder} onChange={setSortOrder} style={{ width: 150 }}>
+                        <Select.Option value="ASC">ASC</Select.Option>
+                        <Select.Option value="DESC">DESC</Select.Option>
+                    </Select>
+                </div>
+                <div className="flex flex-col items-start ">
+                    <span className="font-medium text-gray-700">Discount Type</span>
+                <Select value={discountType} onChange={setDiscountType} style={{ width: 180 }} placeholder="Discount Type" allowClear>
+                    <Select.Option disabled value="">Coupon Type</Select.Option>
+                    <Select.Option value="percentage">Percentage</Select.Option>
+                    <Select.Option value="fixed_amount">Fixed Amount</Select.Option>
+                    <Select.Option value="category_specific">Category Specific</Select.Option>
+                    <Select.Option value="product_specific">Product Specific</Select.Option>
+                    <Select.Option value="free_shipping">Free shipping</Select.Option>
+                </Select>
+                </div>
+
+                <Button onClick={fetchCoupons} type="primary">Apply Filters</Button>
+            </div>
+
             {loading ? (
-                <p className="text-center text-gray-600">Loading coupons...</p>
+               <div className="flex justify-center">
+                 <Spin size="large" className="mx-auto mt-20" />
+               </div>
             ) : (
                 <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {coupons.map((coupon) => (

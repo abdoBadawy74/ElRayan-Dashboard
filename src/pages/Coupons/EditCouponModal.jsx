@@ -122,7 +122,7 @@ export default function EditCouponModal({ open, editData, setEditData, onSave, o
                     mode="multiple"
                     style={{ width: '100%' }}
                     placeholder="Select categories"
-                    value={editData.applicableCategories.map(c => c.id)}
+                    value={editData.applicableCategories?.map(c => c.id)}
                     onChange={(ids) => {
                         const selected = categories.filter(c => ids.includes(c.id));
                         setEditData({ ...editData, applicableCategories: selected.id });
