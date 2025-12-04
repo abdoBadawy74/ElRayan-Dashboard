@@ -14,7 +14,9 @@ import {
     YAxis,
     CartesianGrid,
 } from "recharts";
-import { Modal, Input, Select, Checkbox, Button } from 'antd';
+import { Modal, Input, Select, Checkbox, Button, DatePicker, InputNumber } from 'antd';
+import dayjs from "dayjs";
+import AddCouponModal from "./AddCouponModal";
 
 
 const API_URL =
@@ -162,16 +164,13 @@ export default function Coupons() {
     };
 
     // Handle add save (POST)
-    const handleAddSave = async () => {
+    const handleAddSave = async (couponData) => {
         const body = {
-            ...newCoupon,
-            validFrom: newCoupon.validFrom
-                ? new Date(newCoupon.validFrom).toISOString()
-                : new Date().toISOString(),
-            validTo: newCoupon.validTo
-                ? new Date(newCoupon.validTo).toISOString()
-                : new Date().toISOString(),
+            ...couponData,
+            validFrom: couponData.validFrom ? new Date(couponData.validFrom).toISOString() : new Date().toISOString(),
+            validTo: couponData.validTo ? new Date(couponData.validTo).toISOString() : new Date().toISOString(),
         };
+
 
         try {
             const res = await fetch(
@@ -249,95 +248,12 @@ export default function Coupons() {
 
             {/* Modal Add */}
             {showAdd && (
-                <Modal
-                    title="➕ Add Coupon"
+                <AddCouponModal
                     open={showAdd}
                     onCancel={() => setShowAdd(false)}
-                    onOk={handleAddSave}
-                    okText="Save"
-                    cancelText="Cancel"
-                    width={700}
-                >
-                    {/* Code */}
-                    <label>Code</label>
-                    <Input
-                        value={newCoupon.code}
-                        onChange={(e) => setNewCoupon({ ...newCoupon, code: e.target.value })}
-                        className="mb-3"
-                    />
-
-                    {/* Name */}
-                    <div className="grid grid-cols-2 gap-4 mb-3">
-                        <Input
-                            placeholder="Name EN"
-                            value={newCoupon?.name?.en}
-                            onChange={(e) =>
-                                setNewCoupon({ ...newCoupon, name: { ...newCoupon.name, en: e.target.value } })
-                            }
-                        />
-                        <Input
-                            placeholder="Name AR"
-                            value={newCoupon?.name?.ar}
-                            onChange={(e) =>
-                                setNewCoupon({ ...newCoupon, name: { ...newCoupon.name, ar: e.target.value } })
-                            }
-                        />
-                    </div>
-
-                    {/* Description */}
-                    <div className="grid grid-cols-2 gap-4 mb-3">
-                        <Input.TextArea
-                            placeholder="Description EN"
-                            value={newCoupon.description.en}
-                            onChange={(e) =>
-                                setNewCoupon({ ...newCoupon, description: { ...newCoupon.description, en: e.target.value } })
-                            }
-                        />
-                        <Input.TextArea
-                            placeholder="Description AR"
-                            value={newCoupon.description.ar}
-                            onChange={(e) =>
-                                setNewCoupon({ ...newCoupon, description: { ...newCoupon.description, ar: e.target.value } })
-                            }
-                        />
-                    </div>
-
-                    {/* Discount */}
-                    <div className="grid grid-cols-2 gap-4 mb-3">
-                        <Select
-                            value={newCoupon.discountType}
-                            onChange={(val) => setNewCoupon({ ...newCoupon, discountType: val })}
-                            options={[
-                                { value: 'percentage', label: 'Percentage' },
-                                { value: 'fixed_amount', label: 'Fixed' },
-                            ]}
-                        />
-                        <Input
-                            type="number"
-                            value={newCoupon.discountValue}
-                            onChange={(e) => setNewCoupon({ ...newCoupon, discountValue: Number(e.target.value) })}
-                        />
-                    </div>
-
-                    {/* Status + Stackable */}
-                    <div className="grid grid-cols-2 gap-4">
-                        <Select
-                            value={newCoupon.status}
-                            onChange={(val) => setNewCoupon({ ...newCoupon, status: val })}
-                            options={[
-                                { value: 'active', label: 'Active' },
-                                { value: 'inactive', label: 'Inactive' },
-                            ]}
-                        />
-                        <Checkbox
-                            checked={newCoupon.isStackable}
-                            onChange={(e) => setNewCoupon({ ...newCoupon, isStackable: e.target.checked })}
-                        >
-                            Is Stackable
-                        </Checkbox>
-                    </div>
-                </Modal>
-
+                    onSave={handleAddSave}
+                    token={token}
+                />
             )}
 
             {/* Modal Edit */}
