@@ -24,6 +24,15 @@ export default function Banners() {
   const [productId, setProductId] = useState(0);
   const [type, setType] = useState("discount");
 
+
+  const [mainCategories, setMainCategories] = useState([]);
+  const [subCategories, setSubCategories] = useState([]);
+  const [products, setProducts] = useState([]);
+
+  const [selectedMain, setSelectedMain] = useState(null);
+  const [selectedSub, setSelectedSub] = useState(null);
+
+
   // ------------------ FETCH ------------------
   const fetchBanners = async () => {
     setLoading(true);
@@ -127,6 +136,66 @@ export default function Banners() {
     }
   };
 
+  // ---------------- FETCH CATEGORIES & PRODUCTS --------------
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const res = await fetch("https://api.elrayan.acwad.tech/api/v1/category",
+          { headers: { lang: "en" } }
+        );
+        const data = await res.json();
+        if (data.success) setMainCategories(data.data);
+      } catch (err) {
+        console.log(err);
+      }
+    };
+
+    fetchCategories();
+  }, []);
+
+  useEffect(() => {
+    if (!selectedMain) return;
+
+    const fetchSubs = async () => {
+      try {
+        const res = await fetch(`https://api.elrayan.acwad.tech/api/v1/sub-categories?main_category=${selectedMain}`,
+          { headers: { lang: "en" } }
+        );
+        const data = await res.json();
+        if (data.success) setSubCategories(data.data);
+      } catch (err) {
+        console.log(err);
+      }
+    };
+
+    fetchSubs();
+  }, [selectedMain]);
+
+  useEffect(() => {
+    if (!selectedMain || !selectedSub) return;
+
+    const fetchProducts = async () => {
+      try {
+        const res = await fetch(
+          `https://api.elrayan.acwad.tech/api/v1/product?categoryId=${selectedMain}&subCategoryId=${selectedSub}`,
+          { headers: { lang: "en" } }
+        );
+        const data = await res.json();
+        if (data.success) setProducts(data.data.items);
+      } catch (err) {
+        console.log(err);
+      }
+    };
+
+    fetchProducts();
+  }, [selectedSub]);
+
+
+
+
+
+  // ------------------ RESET FORM ------------------
+
   const resetForm = () => {
     setTitle("");
     setLink("");
@@ -184,10 +253,11 @@ export default function Banners() {
         onCancel={() => setIsModalOpen(false)}
         footer={null}
         centered
+        width={600}
       >
         {selectedBanner && (
           <div>
-            <img src={selectedBanner.imagePath} className="w-full h-60 object-cover rounded mb-4" />
+            <img src={selectedBanner.imagePath} className="w-full h-60 rounded mb-4" />
 
             <div className="flex justify-end gap-2">
               <Button
@@ -238,7 +308,48 @@ export default function Banners() {
 
           <Input placeholder="Title" value={title} onChange={(e) => setTitle(e.target.value)} required />
           <Input placeholder="Link" value={link} onChange={(e) => setLink(e.target.value)} />
-          <Input placeholder="Product ID" value={productId} onChange={(e) => setProductId(e.target.value)} />
+          <Select
+            placeholder="Select Main Category"
+            className="w-full"
+            value={selectedMain}
+            onChange={(value) => {
+              setSelectedMain(value);
+              setSelectedSub(null);
+              setProducts([]);
+            }}
+            options={mainCategories.map((cat) => ({
+              value: cat.id,
+              label: cat.name
+            }))}
+          />
+
+          <Select
+            placeholder="Select Sub Category"
+            className="w-full"
+            value={selectedSub}
+            onChange={(value) => setSelectedSub(value)}
+            disabled={!selectedMain}
+            options={subCategories.map((sub) => ({
+              value: sub.id,
+              label: sub.name
+            }))}
+          />
+
+          <Select
+            placeholder="Select Product"
+            className="w-full"
+            value={productId}
+            onChange={(value) => setProductId(value)}
+            disabled={!selectedSub}
+            options={products.map((p) => ({
+              value: p.id,
+              label: p.name
+            }))}
+            showSearch
+            filterOption={(input, option) => option.label.toLowerCase().includes(input.toLowerCase())}
+
+          />
+
 
           <Select
             value={type}
@@ -259,7 +370,9 @@ export default function Banners() {
         </form>
       </Modal>
 
+
       {/* ------------------ EDIT MODAL ------------------ */}
+
       <Modal
         open={isEditModalOpen}
         title="Edit Banner"
@@ -278,7 +391,52 @@ export default function Banners() {
 
           <Input placeholder="Title" value={title} onChange={(e) => setTitle(e.target.value)} required />
           <Input placeholder="Link" value={link} onChange={(e) => setLink(e.target.value)} />
-          <Input placeholder="Product ID" value={productId} onChange={(e) => setProductId(e.target.value)} />
+
+          {/* MAIN CATEGORY */}
+          <Select
+            placeholder="Select Main Category"
+            className="w-full"
+            value={selectedMain}
+            onChange={(value) => {
+              setSelectedMain(value);
+              setSelectedSub(null);
+              setProducts([]);
+            }}
+            options={mainCategories.map((cat) => ({
+              value: cat.id,
+              label: cat.name
+            }))}
+          />
+
+          {/* SUB CATEGORY */}
+          <Select
+            placeholder="Select Sub Category"
+            className="w-full"
+            value={selectedSub}
+            onChange={(value) => setSelectedSub(value)}
+            disabled={!selectedMain}
+            options={subCategories.map((sub) => ({
+              value: sub.id,
+              label: sub.name
+            }))}
+          />
+
+          {/* PRODUCT WITH SEARCH */}
+          <Select
+            placeholder="Select Product"
+            className="w-full"
+            value={productId}
+            showSearch
+            filterOption={(input, option) =>
+              option.label.toLowerCase().includes(input.toLowerCase())
+            }
+            onChange={(value) => setProductId(value)}
+            disabled={!selectedSub}
+            options={products.map((p) => ({
+              value: p.id,
+              label: p.name
+            }))}
+          />
 
           <Select
             value={type}
@@ -298,6 +456,7 @@ export default function Banners() {
           </div>
         </form>
       </Modal>
+
 
       <ToastContainer />
     </div>
