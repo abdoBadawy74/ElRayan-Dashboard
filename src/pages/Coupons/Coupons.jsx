@@ -15,12 +15,12 @@ import {
     CartesianGrid,
 } from "recharts";
 import { Modal, Input, Select, Checkbox, Button, DatePicker, InputNumber } from 'antd';
-import dayjs from "dayjs";
 import AddCouponModal from "./AddCouponModal";
+import EditCouponModal from "./EditCouponModal";
 
 
 const API_URL =
-    "https://api.elrayan.acwad.tech/api/v1/coupons?status=active&page=1&limit=10&sortOrder=ASC";
+    "https://api.elrayan.acwad.tech/api/v1/coupons?status=active&page=1&limit=10&sortOrder=DESC";
 
 export default function Coupons() {
     const [coupons, setCoupons] = useState([]);
@@ -34,29 +34,7 @@ export default function Coupons() {
 
     // إضافة
     const [showAdd, setShowAdd] = useState(false);
-    const [newCoupon, setNewCoupon] = useState({
-        code: "",
-        name: { en: "", ar: "" },
-        description: { en: "", ar: "" },
-        discountType: "percentage",
-        discountValue: 0,
-        maxDiscountAmount: 0,
-        minOrderAmount: 0,
-        status: "active",
-        validFrom: "",
-        validTo: "",
-        usageLimit: 0,
-        usageLimitPerUser: 0,
-        applicableCategories: [],
-        // applicableVendors: [],
-        applicableProducts: [],
-        excludedCategories: [],
-        excludedProducts: [],
-        applicableUserGroups: [],
-        isStackable: true,
-        createdBy: 0,
-        splitValue: 0,
-    });
+   
 
     const token = localStorage.getItem("token");
 
@@ -258,97 +236,15 @@ export default function Coupons() {
 
             {/* Modal Edit */}
             {showEdit && editData && (
-                <Modal
-                    title="✏️ Edit Coupon"
-                    open={showEdit && editData}
+                <EditCouponModal
+                    open={showEdit}
+                    editData={editData}
+                    setEditData={setEditData}
+                    onSave={handleEditSave}
                     onCancel={() => setShowEdit(false)}
-                    onOk={handleEditSave}
-                    okText="Save"
-                    cancelText="Cancel"
-                    width={700}
-                >
-                    {/* Code */}
-                    <label>Code</label>
-                    <Input
-                        value={editData.code}
-                        onChange={(e) => setEditData({ ...editData, code: e.target.value })}
-                        className="mb-3"
-                    />
-
-                    {/* Name */}
-                    <div className="grid grid-cols-2 gap-4 mb-3">
-                        <Input
-                            placeholder="Name EN"
-                            value={editData?.name?.en}
-                            onChange={(e) =>
-                                setEditData({ ...editData, name: { ...editData.name, en: e.target.value } })
-                            }
-                        />
-                        <Input
-                            placeholder="Name AR"
-                            value={editData?.name?.ar}
-                            onChange={(e) =>
-                                setEditData({ ...editData, name: { ...editData.name, ar: e.target.value } })
-                            }
-                        />
-                    </div>
-
-                    {/* Description */}
-                    <div className="grid grid-cols-2 gap-4 mb-3">
-                        <Input.TextArea
-                            placeholder="Description EN"
-                            value={editData.description?.en}
-                            onChange={(e) =>
-                                setEditData({ ...editData, description: { ...editData.description, en: e.target.value } })
-                            }
-                        />
-                        <Input.TextArea
-                            placeholder="Description AR"
-                            value={editData.description?.ar}
-                            onChange={(e) =>
-                                setEditData({ ...editData, description: { ...editData.description, ar: e.target.value } })
-                            }
-                        />
-                    </div>
-
-                    {/* Discount */}
-                    <div className="grid grid-cols-2 gap-4 mb-3">
-                        <Select
-                            value={editData.discountType}
-                            onChange={(val) => setEditData({ ...editData, discountType: val })}
-                            options={[
-                                { value: 'percentage', label: 'Percentage' },
-                                { value: 'fixed_amount', label: 'Fixed' },
-                            ]}
-                        />
-                        <Input
-                            type="number"
-                            value={newCoupon.discountValue}
-                            onChange={(e) => setNewCoupon({ ...newCoupon, discountValue: Number(e.target.value) })}
-                        />
-                    </div>
-
-                    {/* Status + Stackable */}
-                    <div className="grid grid-cols-2 gap-4">
-                        <Select
-                            value={editData.status}
-                            onChange={(val) => setEditData({ ...editData, status: val })}
-                            options={[
-                                { value: 'active', label: 'Active' },
-                                { value: 'inactive', label: 'Inactive' },
-                            ]}
-                        />
-                        <Checkbox
-                            checked={editData.isStackable}
-                            onChange={(e) => setEditData({ ...editData, isStackable: e.target.checked })}
-                        >
-                            Is Stackable
-                        </Checkbox>
-                    </div>
-                </Modal>
-
+                    token={token}
+                />
             )}
-
 
             {/* Modal Analytics */}
             {showAnalytics && analyticsData && (
