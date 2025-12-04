@@ -8,6 +8,8 @@ import {
     Popconfirm,
     Spin,
     Typography,
+    Select,
+
 } from "antd";
 import { Eye, Trash2, EyeOff, EyeIcon, Edit } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -26,6 +28,14 @@ export default function Products() {
     const [viewModal, setViewModal] = useState(false);
     const [selectedProduct, setSelectedProduct] = useState(null);
 
+    const [mainCategories, setMainCategories] = useState([]);
+    const [subCategories, setSubCategories] = useState([]);
+
+    const [selectedMain, setSelectedMain] = useState("");
+    const [selectedSub, setSelectedSub] = useState("");
+
+
+
     const token = localStorage.getItem("token");
 
     const api = axios.create({
@@ -39,9 +49,13 @@ export default function Products() {
     const fetchProducts = async () => {
         try {
             setLoading(true);
+
             const res = await api.get(
-                `/product?page=${page}&limit=${limit}&sortOrder=ASC`
+                `/product?page=${page}&limit=${limit}&sortOrder=ASC${selectedMain ? `&categoryId=${selectedMain}` : ""
+                }${selectedSub ? `&subCategoryId=${selectedSub}` : ""
+                }`
             );
+
             if (res.data.success) {
                 setProducts(res.data.data.items);
                 setMeta(res.data.data.metadata);
@@ -52,10 +66,6 @@ export default function Products() {
             setLoading(false);
         }
     };
-
-    useEffect(() => {
-        fetchProducts();
-    }, [page, limit]);
 
     // ===========================
     // Delete Product
@@ -95,6 +105,46 @@ export default function Products() {
             console.log(e);
         }
     };
+
+
+    // ===========================
+    // Fetch Categories
+    // ==========================
+    useEffect(() => {
+        const fetchMain = async () => {
+            try {
+                const res = await api.get("/category", {
+                    headers: { lang: "en" }
+                });
+                if (res.data.success) setMainCategories(res.data.data);
+            } catch (e) { console.log(e); }
+        };
+        fetchMain();
+    }, []);
+
+    console.log(mainCategories)
+    // ===========================
+    // Fetch Sub Categories
+    // =========================
+    useEffect(() => {
+        if (!selectedMain) return;
+        const fetchSubs = async () => {
+            try {
+                const res = await api.get(`/sub-categories?main_category=${selectedMain}`, {
+                    headers: { lang: "en" }
+                });
+                if (res.data.success) setSubCategories(res.data.data);
+            } catch (e) { console.log(e); }
+        };
+        fetchSubs();
+    }, [selectedMain]);
+
+
+    // Fetch products on page/limit change
+    useEffect(() => {
+        fetchProducts();
+    }, [page, limit]);
+
 
     // ===========================
     // Table Columns
@@ -193,103 +243,159 @@ export default function Products() {
                     <Link to="/products/add">
                         <Button type="primary">Add New Product</Button>
                     </Link>
-                    </div>
+                </div>
+            </div>
+
+
+
+            <div style={{ display: "flex", gap: 10, marginBottom: 20, alignItems: "center" }}>
+
+                <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
+                    <p className="self-start m-0 text-red-500">Filter by Category:</p>
+                    <Select
+                        value={selectedMain}
+                        placeholder="Select Main Category"
+                        style={{ width: 200 }}
+                        onChange={(value) => {
+                            setSelectedMain(value);
+                            setSelectedSub("");
+                        }}
+                        options={mainCategories.map(c => ({
+                            value: c.id,
+                            label: c.name.en,
+                        }))}
+                    />
                 </div>
 
-                {/* Loading */}
-                {loading && (
-                    <div style={{ textAlign: "center", marginTop: 50 }}>
-                        <Spin size="large" />
+
+                <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
+                    <p className="self-start m-0 text-red-500">Filter by Sub Category:</p>
+                    <Select
+                        value={selectedSub}
+                        placeholder="Select Sub Category"
+                        disabled={!selectedMain}
+                        style={{ width: 200 }}
+                        onChange={(value) => setSelectedSub(value)}
+                        options={subCategories.map(s => ({
+                            value: s.id,
+                            label: s.name.en,
+                        }))}
+                    />
+                </div>
+
+                <Button
+                    onClick={() => {
+                        setSelectedMain("");
+                        setSelectedSub("");
+                        setPage(1);
+                        setLimit(10);
+                        fetchProducts();
+                    }}
+                    style={{ marginTop: 20 }}
+                >
+                    Clear Filters
+                </Button>
+
+                <Button type="primary" style={{ marginTop: 20 }} onClick={() => fetchProducts()}>
+                    Filter
+                </Button>
+            </div>
+
+
+
+            {/* Table */}
+            {!loading && (
+                <Table
+                    rowKey="id"
+                    columns={columns}
+                    dataSource={products}
+                    pagination={{
+                        current: meta.currentPage,
+                        total: meta.totalItems,
+                        pageSize: limit,
+                        onChange: (p, pageSize) => {
+                            setPage(p);
+                            setLimit(pageSize);
+                        },
+                    }}
+                />
+            )}
+            {/* Loading */}
+            {loading && (
+                <div style={{ textAlign: "center", marginTop: 50 }}>
+                    <Spin size="large" />
+                </div>
+            )}
+
+            {/* VIEW MODAL */}
+            <Modal
+                open={viewModal}
+                onCancel={() => setViewModal(false)}
+                footer={null}
+                title="Product Details"
+                width={600}
+            >
+                {selectedProduct && (
+                    <div>
+                        {
+                            selectedProduct.images.length === 1 ? (
+                                <img
+                                    src={selectedProduct.images?.[0]?.attach}
+                                    style={{
+                                        width: "100%",
+                                        borderRadius: 10,
+                                        marginBottom: 10,
+                                        objectFit: "cover",
+                                    }}
+                                />
+                            ) : (
+                                <div
+                                    style={{
+                                        display: "flex",
+                                        gap: 10,
+                                        overflowX: "auto",
+                                        justifyContent: "start",
+                                        marginBottom: 10,
+                                    }}
+                                >
+                                    {selectedProduct.images.map((img) => (
+                                        <img
+                                            key={img.id}
+                                            src={img.attach}
+                                            style={{
+                                                width: 100,
+                                                height: 100,
+                                                borderRadius: 10,
+                                                objectFit: "cover",
+                                            }}
+                                        />
+                                    ))}
+                                </div>
+                            )
+                        }
+                        <h2>{selectedProduct.name.en}</h2>
+                        <p>{selectedProduct.description.en}</p>
+
+                        <p>
+                            <strong>Price:</strong> {selectedProduct.price_after_discount} EGP
+                        </p>
+
+                        <p>
+                            <strong>Stock:</strong> {selectedProduct.stock}
+                        </p>
+
+                        <p>
+                            <strong>Main Category:</strong>{" "}
+                            {selectedProduct.mainCategory?.name}
+                        </p>
+
+                        <p>
+                            <strong>Sub Category:</strong>{" "}
+                            {selectedProduct.subCategory?.name}
+                        </p>
                     </div>
                 )}
-
-                {/* Table */}
-                {!loading && (
-                    <Table
-                        rowKey="id"
-                        columns={columns}
-                        dataSource={products}
-                        pagination={{
-                            current: meta.currentPage,
-                            total: meta.totalItems,
-                            pageSize: limit,
-                            onChange: (p, pageSize) => {
-                                setPage(p);
-                                setLimit(pageSize);
-                            },
-                        }}
-                    />
-                )}
-
-                {/* VIEW MODAL */}
-                <Modal
-                    open={viewModal}
-                    onCancel={() => setViewModal(false)}
-                    footer={null}
-                    title="Product Details"
-                    width={600}
-                >
-                    {selectedProduct && (
-                        <div>
-                            {
-                                selectedProduct.images.length === 1 ? (
-                                    <img
-                                        src={selectedProduct.images?.[0]?.attach}
-                                        style={{
-                                            width: "100%",
-                                            borderRadius: 10,
-                                            marginBottom: 10,
-                                            objectFit: "cover",
-                                        }}
-                                    />
-                                ) : (
-                                    <div
-                                        style={{
-                                            display: "flex",
-                                            gap: 10,
-                                            overflowX: "auto",
-                                            justifyContent: "start",
-                                            marginBottom: 10,
-                                        }}
-                                    >
-                                        {selectedProduct.images.map((img) => (
-                                            <img
-                                                key={img.id}
-                                                src={img.attach}
-                                                style={{
-                                                    width: 100,
-                                                    height: 100,
-                                                    borderRadius: 10,
-                                                    objectFit: "cover",
-                                                }}
-                                            />
-                                        ))}
-                                    </div>
-                                )
-                            }
-                            <h2>{selectedProduct.name.en}</h2>
-                            <p>{selectedProduct.description.en}</p>
-
-                            <p>
-                                <strong>Price:</strong> {selectedProduct.price_after_discount} EGP
-                            </p>
-
-                            <p>
-                                <strong>Stock:</strong> {selectedProduct.stock}
-                            </p>
-
-                            <p>
-                                <strong>Main Category:</strong>{" "}
-                                {selectedProduct.mainCategory?.name}
-                            </p>
-
-                            <p>
-                                <strong>Sub Category:</strong>{" "}
-                                {selectedProduct.subCategory?.name}
-                            </p>
-                        </div>
-                    )}
-                </Modal>
-            </div>
-            );
+            </Modal>
+        </div>
+    );
 }
