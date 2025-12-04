@@ -13,8 +13,6 @@ import {
 import { Search } from "lucide-react";
 import dayjs from "dayjs";
 import {
-    BarChart,
-    Bar,
     LineChart,
     Line,
     XAxis,
@@ -24,26 +22,20 @@ import {
     ResponsiveContainer
 } from "recharts";
 
-
 const { RangePicker } = DatePicker;
 
 export default function SalesReport() {
     const [loading, setLoading] = useState(false);
     const [report, setReport] = useState(null);
-
-    // params
     const [dates, setDates] = useState([]);
     const [type, setType] = useState("");
 
-    // set default range = last month → today
+    // Default date = last month → today
     useEffect(() => {
         const today = dayjs();
         const lastMonth = dayjs().subtract(1, "month");
         const defaultRange = [lastMonth, today];
-
         setDates(defaultRange);
-
-        // Fetch immediately only for date range
         fetchData(defaultRange, "");
     }, []);
 
@@ -56,17 +48,15 @@ export default function SalesReport() {
             return;
         }
 
-        let startDate = d[0].format("D-M-YYYY");
-        let endDate = d[1].format("D-M-YYYY");
+        let startDate = d[0].format("YYYY-MM-DD");
+        let endDate = d[1].format("YYYY-MM-DD");
 
         try {
             setLoading(true);
 
             const res = await axios.get(
                 "https://api.elrayan.acwad.tech/api/v1/orders/sales-report",
-                {
-                    params: { startDate, endDate, type: t },
-                }
+                { params: { startDate, endDate, type: t } }
             );
 
             setReport(res.data);
@@ -82,18 +72,23 @@ export default function SalesReport() {
         { title: "Product", dataIndex: "name" },
         {
             title: "Sold",
-            dataIndex: "sold",
-            sorter: (a, b) => a.sold - b.sold,
+            dataIndex: "quantitySold",
+            sorter: (a, b) => a.quantitySold - b.quantitySold,
         },
         {
             title: "Revenue",
             dataIndex: "revenue",
             sorter: (a, b) => a.revenue - b.revenue,
         },
+        {
+            title: "Average Price",
+            dataIndex: "averagePrice",
+            sorter: (a, b) => a.averagePrice - b.averagePrice,
+        }
     ];
 
     return (
-        <div className="space-y-5">
+        <div className="space-y-5 p-2">
 
             {/* Filters */}
             <Card className="p-4">
@@ -138,114 +133,133 @@ export default function SalesReport() {
                 </Space>
             </Card>
 
-            {/* Show nothing until data loaded */}
             {!report ? null : (
                 <>
+
+                    {/* Revenue Trend Chart */}
+                    {report.trends && report.trends.length > 0 && (
+                        <Card title="Revenue Trend">
+                            <div style={{ width: "100%", height: 300 }}>
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <LineChart data={report.trends}>
+                                        <CartesianGrid strokeDasharray="3 3" />
+                                        <XAxis
+                                            dataKey="date"
+                                            tickFormatter={(v) => dayjs(v).format("DD/MM")}
+                                        />
+                                        <YAxis />
+                                        <Tooltip
+                                            labelFormatter={(v) => dayjs(v).format("DD/MM/YYYY")}
+                                        />
+                                        <Line type="monotone" dataKey="revenue" stroke="#3b82f6" strokeWidth={3} />
+                                    </LineChart>
+                                </ResponsiveContainer>
+                            </div>
+                        </Card>
+                    )}
+
+                    {/* Charts Row */}
+                    <div style={{ display: "flex", gap: 20, flexWrap: "wrap" }}>
+                        <Card title="Revenue vs Orders" style={{ flex: 1, minWidth: 250 }}>
+                            <div style={{ width: "100%", height: 260 }}>
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <LineChart
+                                        data={[
+                                            { name: "Revenue", value: report.summary.totalRevenue },
+                                            { name: "Orders", value: report.summary.totalOrders },
+                                        ]}
+                                    >
+                                        <CartesianGrid strokeDasharray="3 3" />
+                                        <XAxis dataKey="name" />
+                                        <YAxis />
+                                        <Tooltip />
+                                        <Line type="monotone" dataKey="value" stroke="#3b82f6" strokeWidth={3} />
+                                    </LineChart>
+                                </ResponsiveContainer>
+                            </div>
+                        </Card>
+
+                        <Card title="Discounts Given" style={{ flex: 1, minWidth: 250 }}>
+                            <div style={{ width: "100%", height: 260 }}>
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <LineChart
+                                        data={[{ name: "Total Discount", value: report.summary.totalDiscountGiven }]}
+                                    >
+                                        <CartesianGrid strokeDasharray="3 3" />
+                                        <XAxis dataKey="name" />
+                                        <YAxis />
+                                        <Tooltip />
+                                        <Line type="monotone" dataKey="value" stroke="#ef4444" strokeWidth={3} />
+                                    </LineChart>
+                                </ResponsiveContainer>
+                            </div>
+                        </Card>
+
+                        <Card title="Shipping Revenue" style={{ flex: 1, minWidth: 250 }}>
+                            <div style={{ width: "100%", height: 260 }}>
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <LineChart
+                                        data={[{ name: "Shipping", value: report.summary.totalShippingRevenue }]}
+                                    >
+                                        <CartesianGrid strokeDasharray="3 3" />
+                                        <XAxis dataKey="name" />
+                                        <YAxis />
+                                        <Tooltip />
+                                        <Line type="monotone" dataKey="value" stroke="#f59e0b" strokeWidth={3} />
+                                    </LineChart>
+                                </ResponsiveContainer>
+                            </div>
+                        </Card>
+                    </div>
+
+
 
                     {/* Summary */}
                     <Card title="Summary">
                         <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
 
-                            <Card>
-                                <b>Total Revenue</b>
-                                <div style={{ fontSize: 20, fontWeight: 600 }}>
-                                    {report.summary.totalRevenue}
-                                </div>
-                            </Card>
+                            <Card><b>Total Revenue</b><div className="text-xl font-bold">{report.summary.totalRevenue}</div></Card>
 
-                            <Card>
-                                <b>Total Orders</b>
-                                <div style={{ fontSize: 20, fontWeight: 600 }}>
-                                    {report.summary.totalOrders}
-                                </div>
-                            </Card>
+                            <Card><b>Total Orders</b><div className="text-xl font-bold">{report.summary.totalOrders}</div></Card>
 
-                            <Card>
-                                <b>Average Order Value</b>
-                                <div style={{ fontSize: 20, fontWeight: 600 }}>
-                                    {report.summary.averageOrderValue}
-                                </div>
-                            </Card>
+                            <Card><b>Average Order Value</b><div className="text-xl font-bold">{report.summary.averageOrderValue}</div></Card>
 
-                            <Card>
-                                <b>Total Items Sold</b>
-                                <div style={{ fontSize: 20, fontWeight: 600 }}>
-                                    {report.summary.totalItemsSold}
-                                </div>
-                            </Card>
+                            <Card><b>Total Items Sold</b><div className="text-xl font-bold">{report.summary.totalItemsSold}</div></Card>
 
-                            <Card>
-                                <b>Total Discount Given</b>
-                                <div style={{ fontSize: 20, fontWeight: 600 }}>
-                                    {report.summary.totalDiscountGiven}
-                                </div>
-                            </Card>
+                            <Card><b>Total Discount Given</b><div className="text-xl font-bold">{report.summary.totalDiscountGiven}</div></Card>
 
-                            <Card>
-                                <b>Total Shipping Revenue</b>
-                                <div style={{ fontSize: 20, fontWeight: 600 }}>
-                                    {report.summary.totalShippingRevenue}
-                                </div>
-                            </Card>
+                            <Card><b>Total Shipping Revenue</b><div className="text-xl font-bold">{report.summary.totalShippingRevenue}</div></Card>
 
                         </div>
                     </Card>
-
-                    {/* Chart Section */}
-                    <Card title="Revenue Chart (Preview)">
-                        {report.topProducts?.length === 0 ? (
-                            <Tag color="red">No data available for chart</Tag>
-                        ) : (
-                            <div style={{ width: "100%", height: 300 }}>
-                                <ResponsiveContainer width="100%" height="100%">
-                                    <BarChart data={report.topProducts}>
-                                        <CartesianGrid strokeDasharray="3 3" />
-                                        <XAxis dataKey="name" tick={{ fontSize: 12 }} />
-                                        <YAxis />
-                                        <Tooltip />
-                                        <Bar dataKey="sold" fill="#3b82f6" />
-                                    </BarChart>
-                                </ResponsiveContainer>
-                            </div>
-                        )}
-                    </Card>
-
 
                     {/* Breakdown */}
                     <Card title="Breakdown">
                         <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
 
-                            <Card>
-                                <b>Completed Orders</b>
-                                <div style={{ fontSize: 20 }}>{report.breakdown.completedOrders}</div>
-                            </Card>
+                            <Card><b>Completed Orders</b><div className="text-xl">{report.breakdown.completedOrders}</div></Card>
 
-                            <Card>
-                                <b>Pending Orders</b>
-                                <div style={{ fontSize: 20 }}>{report.breakdown.pendingOrders}</div>
-                            </Card>
+                            <Card><b>Pending Orders</b><div className="text-xl">{report.breakdown.pendingOrders}</div></Card>
 
-                            <Card>
-                                <b>Cancelled Orders</b>
-                                <div style={{ fontSize: 20 }}>{report.breakdown.cancelledOrders}</div>
-                            </Card>
+                            <Card><b>Cancelled Orders</b><div className="text-xl">{report.breakdown.cancelledOrders}</div></Card>
 
-                            <Card>
-                                <b>Refunded Orders</b>
-                                <div style={{ fontSize: 20 }}>{report.breakdown.refundedOrders}</div>
-                            </Card>
+                            <Card><b>Refunded Orders</b><div className="text-xl">{report.breakdown.refundedOrders}</div></Card>
 
                             <Card>
                                 <b>Completion Rate</b>
-                                <div style={{ fontSize: 20 }}>
-                                    {report.breakdown.completionRate}%
+                                <div className="text-xl">
+                                    {report.breakdown.completionRate !== undefined
+                                        ? Number(report.breakdown.completionRate).toFixed(2)
+                                        : "0.00"}%
                                 </div>
                             </Card>
 
                             <Card>
                                 <b>Cancellation Rate</b>
-                                <div style={{ fontSize: 20 }}>
-                                    {report.breakdown.cancellationRate}%
+                                <div className="text-xl">
+                                    {report.breakdown.cancellationRate !== undefined
+                                        ? Number(report.breakdown.cancellationRate).toFixed(2)
+                                        : "0.00"}%
                                 </div>
                             </Card>
 
@@ -256,22 +270,11 @@ export default function SalesReport() {
                     <Card title="Customer Insights">
                         <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
 
-                            <Card>
-                                <b>Unique Customers</b>
-                                <div style={{ fontSize: 20 }}>{report.customerInsights.uniqueCustomers}</div>
-                            </Card>
+                            <Card><b>Unique Customers</b><div className="text-xl">{report.customerInsights.uniqueCustomers}</div></Card>
 
-                            <Card>
-                                <b>Returning Customers</b>
-                                <div style={{ fontSize: 20 }}>{report.customerInsights.returningCustomers}</div>
-                            </Card>
+                            <Card><b>Returning Customers</b><div className="text-xl">{report.customerInsights.returningCustomers}</div></Card>
 
-                            <Card>
-                                <b>Avg Orders Per Customer</b>
-                                <div style={{ fontSize: 20 }}>
-                                    {report.customerInsights.averageOrdersPerCustomer}
-                                </div>
-                            </Card>
+                            <Card><b>Avg Orders Per Customer</b><div className="text-xl">{report.customerInsights.averageOrdersPerCustomer}</div></Card>
 
                         </div>
                     </Card>
@@ -294,7 +297,6 @@ export default function SalesReport() {
 
                 </>
             )}
-
         </div>
     );
 }
