@@ -18,6 +18,7 @@ import LowStockProducts from "./LowStockProducts";
 import SalesReport from "./SalesReport";
 import { FaInfoCircle } from "react-icons/fa";
 import { Section } from "lucide-react";
+import TopCustomers from "./TopCustomers";
 
 /*
   Simple Tabs layout.
@@ -130,12 +131,9 @@ export default function Dashboard() {
                     </Suspense>
                 )}
                 {activeTab === "topCustomers" && (
-                    <section>
-                        <h2>
-                            <FaInfoCircle className="inline mr-2 text-blue-500" />
-                            Top Customers section is under development.
-                        </h2>
-                    </section>
+                    <Suspense fallback={<div className="flex justify-center py-20"><PulseLoader /></div>}>
+                        <TopCustomers />
+                    </Suspense>
                 )}
 
                 {activeTab === "shipping" && (

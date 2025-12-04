@@ -9,6 +9,7 @@ import {
     Table,
     Tag,
     message,
+    Spin,
 } from "antd";
 import { Search } from "lucide-react";
 import dayjs from "dayjs";
@@ -135,7 +136,11 @@ export default function SalesReport() {
 
             {!report ? null : (
                 <>
-
+                    {loading ? (
+                        <div style={{ textAlign: "center", marginTop: 50 }}>
+                            <Spin size="large" />
+                        </div>
+                    ) : null}
                     {/* Revenue Trend Chart */}
                     {report.trends && report.trends.length > 0 && (
                         <Card title="Revenue Trend">
